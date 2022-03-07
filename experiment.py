@@ -231,6 +231,7 @@ cond = {
 }
 
 trials = utils.create_conditions(cond, prop_catch=2/3)
+trials = random.sample(trials, len(trials)) # shuffling order
 trials = set_ori(trials, diff = 50) # add the test orientations
 
 # Create psychopy window
