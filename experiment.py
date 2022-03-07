@@ -4,7 +4,6 @@
 Modules
 """
 
-import sys
 from psychopy import core, visual, gui, monitors, event, data # psychopy stuff
 from psychopy.hardware import keyboard
 import numpy as np
@@ -16,9 +15,11 @@ import random
 Functions
 """
 
-# Assingn the correct orientation
-
 def set_ori(trials, diff):
+    """
+    Assign the correct orientation for a given difference (diff)
+    in degrees
+    """
     for trial in trials:
         ori = trial['memory_ori']
         if trial['type'] == 'change':
@@ -33,12 +34,10 @@ def set_ori(trials, diff):
             trial['test_ori'] = ori
     return trials
 
-# Keyboard Response
-
 def ask(kb, obj, msg = None, keyList=None, quit = 'escape', before = '', after = '', hold = False):
     """
     Display a msg and wait for keyboard (kb) response.
-    Return the pressed key and the reaction time
+    Return the pressed key and the reaction time. Can append a before/after string. If hold = True no text is used. Useful for asking for a response while the stimulus is on the screen.
     """
     keyList.append(quit)
     
@@ -57,7 +56,6 @@ def ask(kb, obj, msg = None, keyList=None, quit = 'escape', before = '', after =
     return before + key.name + after, key.rt
 
 # Kill switch for Psychopy3 
-
 esc_key = 'escape'
 
 def quit():
@@ -77,7 +75,6 @@ SET VARIABLES
 MON_DISTANCE = 60  # Distance between subject's eyes and monitor
 MON_WIDTH = 51  # Width of your monitor in cm
 MON_SIZE = [600, 600]  # Pixel-dimensions of your monitor
-SAVE_FOLDER = 'data'  # Log is saved to this folder. The folder is created if it does not exist.
 
 # Stimulus parameters
 GABOR_SF = 3.7  # 4 cycles per degree visual angle
@@ -94,26 +91,30 @@ ITI = 1
 # Condition parameterss
 PRAC_TRIALS = 5 # number of practice trials
 REPETITIONS = 7  # number of trials per condition
-NCATCH = 0 # number of catch trials
 POSITIONS = 0
-ORIS = [15, 45, 75, 105, 135, 165]
+ORIS = [15, 45, 75, 105, 135, 165] # orientations
 NTRIALS_BREAK = 50  # Number of trials between breaks
 NTRIALS_PRAC = 10 # number of practice trials
 
 # Questions and messages
 MESSAGE_POS = [0, 0]  # [x, y]
 MESSAGE_HEIGHT = 1  # Height of the text, still in degrees visual angle
+
+# Keys
 KEYS_QUIT = ['escape']  # Keys that quits the experiment
-PAS_RESP = {'1': 'pas1', '2': 'pas2', '3':'pas3', '4': 'pas4'}
-VIS_RESP = {'pas1': 0, 'pas2': 1, 'pas3': 1, 'pas4': 1} # keys for staircase, this is useful for getting the key for the staircase from the response
-TEST_RESP = {'f': 'change', 'j': 'same'}
+PAS_RESP = {'1': 'pas1', '2': 'pas2', '3':'pas3', '4': 'pas4'} # pas keys
+VIS_RESP = {'pas1': 0, 'pas2': 1, 'pas3': 1, 'pas4': 1} # keys for staircase from PAS RESP
+TEST_RESP = {'f': 'change', 'j': 'same'} # keys for the change detection task
+
+"""
+Text Messages
+"""
 
 INSTR_WELCOME = """
     Benvenutə in questo esperimento!
     
     Premi la barra spaziatrice per continuare!
 """
-    
     
 INSTR_GABOR = """
     In this first part you need to report the visibility of briefly presented stimuli. 
@@ -186,10 +187,8 @@ Puoi prenderti una pausa!
 Premi la barra spaziatrice per continuare l'esperimento!
 """
 
-"""
-print('the physical diameter of the gabor patch should be', ppc.deg2cm(GABOR_SIZE, MON_DISTANCE), 'cm')
-print('the physical size of the fixation cross should be', ppc.deg2cm(FIX_HEIGHT, MON_DISTANCE), 'cm')
-"""
+print('the physical diameter of the gabor patch should be', utils.deg2cm(GABOR_SIZE, MON_DISTANCE), 'cm')
+print('the physical size of the fixation cross should be', utils.deg2cm(FIX_HEIGHT, MON_DISTANCE), 'cm')
 
 """
  SHOW DIALOGUE AND INITIATE PSYCHOPY STIMULI
@@ -208,6 +207,7 @@ if not gui.DlgFromDict(V, order=['subject', 'age', 'gender']).OK:
 
 """
 Create Condition Dictionary
+Each element of the dictonary will be combined using itertools.product() in order to have all the combinations.
 """
 
 cond = {
@@ -230,12 +230,12 @@ cond = {
     "contrast": [0]
 }
 
-trials = utils.create_conditions(cond, prop_catch=2/3)
+trials, nvalid, ncatch = utils.create_conditions(cond, prop_catch=2/3) # create the combinations. prop_catch is the proportions of catch trials to create
 trials = random.sample(trials, len(trials)) # shuffling order
 trials = set_ori(trials, diff = 50) # add the test orientations
 
 # Create psychopy window
-background_color = [0,0,0] # ~grey
+background_color = [0,0,0] # ~ grey
 
 my_monitor = monitors.Monitor('testMonitor', width=MON_WIDTH, distance=MON_DISTANCE)  # Create monitor object from the variables above. This is needed to control size of stimuli in degrees.
 my_monitor.setSizePix(MON_SIZE)
@@ -244,9 +244,7 @@ win = visual.Window(monitor=my_monitor, units='deg', fullscr=True, allowGUI=Fals
 objects_color = "white"
 
 # Init the trial-by-trial saving function
-#write_csv = utils.csv_writer(cond, str(V['subject']), folder = dirs["csv"])  # writer.write(trial) will write individual trials with low latency
-
-stim_text = visual.TextStim(win, pos=MESSAGE_POS, height=MESSAGE_HEIGHT, wrapWidth=40)  # Message / question stimulus. Will be used to display instructions and questions.
+writer = utils.csv_writer(cond, V["subject"], dirs["csv"])
 
 """
 OBJECTS
@@ -257,39 +255,43 @@ gabor_memory = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR
 
 gabor_test = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0), contrast = 1)  # A gabor patch. Again, units are inherited.
 
-mask = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=False, mask="circle", pos = (0, 0))
+mask = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=False, mask="circle", pos = (0, 0)) # mask for the backward masking. The texture is generated trial-by-trial
 
 text = visual.TextStim(win, pos=MESSAGE_POS, height=MESSAGE_HEIGHT, wrapWidth=40)  # Message / question stimulus. Will be used to display instructions and questions.
 
 kb = keyboard.Keyboard() # init the keyboard
 
-# QUEST
+"""
+Quest
+Here we create the quest staircases with parameters. Each staircase will run for ntrials/nstaircase trials
+"""
 
 quest_50 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     pThreshold=0.5, gamma=0, delta = 0,
     minVal=0, maxVal=1,
-    ntrials = len(trials)/3)
+    ntrials = round(nvalid/3))
 
 quest_70 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     pThreshold=0.7, gamma=0, delta = 0,
     minVal=0, maxVal=1,
-    ntrials = len(trials)/3)
+    ntrials = round(nvalid/3))
 
 quest_80 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     pThreshold=0.8, gamma=0, delta = 0,
     minVal=0, maxVal=1,
-    ntrials = len(trials)/3)
+    ntrials = round(nvalid/3))
 
-quest_list = [quest_50, quest_70, quest_80] # list of QUEST
+quest_list = [quest_50, quest_70, quest_80] # list of QUEST in order to randomize the presentation. TODO check if better using the multistairhandler
 
 """
 Experiment
 """
-start_experiment = time.time()
-
-writer = utils.csv_writer(cond, V["subject"], dirs["csv"])
+start_experiment = time.time() # timer for the overall experiment
 
 def experiment(trials, ntrials = None, isPrac = False):
+    """
+    This function run the experiment or a subset of trials (for the practice). If the isPrac argument is True, a subset of random trials (ntrials) will be selected and used in the practice.
+    """
     
     if isPrac:
         prac_idx = random.sample(range(len(trials)), ntrials) # random index
@@ -299,18 +301,20 @@ def experiment(trials, ntrials = None, isPrac = False):
 
     for i in range(len(trials)):
         
-        if i % 3 == 0 and i != 0:
+        # Check for break
+        if i % NTRIALS_BREAK == 0 and i != 0:
             ask(kb, text, TXT_BREAK, ["space"])
         
         # Init trial
         trial = trials[i] # get current dictionary
-        quest_trial = trial['quest']
-        contrast_trial = quest_list[quest_trial]._nextIntensity
-        gabor_memory.contrast = contrast_trial
-        gabor_memory.ori = trial['memory_ori']
-        gabor_test.ori = trial['test_ori']
-        texture = np.random.rand(256, 256) * 2.0 - 1 # the numpy array must
-        mask.tex = texture
+        quest_trial = trial['quest'] # get index quest
+        contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
+        gabor_memory.contrast = contrast_trial # assign contrast to memory
+        gabor_memory.ori = trial['memory_ori'] # assign ori to memory
+        gabor_test.ori = trial['test_ori'] # assign ori to test
+        mask.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for the mask 
+        
+        # -- STARTING TRIAL
         
         # Fixation
         for frame in range(FRAMES_FIX):
@@ -342,9 +346,13 @@ def experiment(trials, ntrials = None, isPrac = False):
         win.flip() # blank screen
         core.wait(ITI)
         
+        # --- END TRIAL
+        
         # Update QUEST
         vis_resp = VIS_RESP[PAS_RESP[str(pas_resp)]] # coverting to 0-1
-        quest_list[quest_trial].addResponse(vis_resp) # updating
+        
+        if trial[ "trial_type"] == "valid": # update only if not catch
+            quest_list[quest_trial].addResponse(vis_resp) # updating
         
         # Update Dict
         trial['contrast'] = contrast_trial
@@ -359,10 +367,10 @@ def experiment(trials, ntrials = None, isPrac = False):
         if not isPrac:
             writer.write(trial)
 
-duration_experiment = time.time() - start_experiment
+duration_experiment = time.time() - start_experiment # timer for the experiment
 
 """
-Running Experiment
+Actual Experiment Running
 """
 
 # Welcome
@@ -371,11 +379,11 @@ ask(kb, text, INSTR_WELCOME, ['space'])
 # TODO add instructions
 
 # Practice
-ask(kb, text, PRAC_INSTRUCTIONS, ["space"])
+ask(kb, text, PRAC_INSTRUCTIONS, ['space'])
 experiment(trials, ntrials = NTRIALS_PRAC, isPrac=True)
 
 # Experiment
-ask(kb, text, INSTR_START_EXPERIMENT, ["space"])
+ask(kb, text, INSTR_START_EXPERIMENT, ['space'])
 experiment(trials)
 
 # Backup Data
