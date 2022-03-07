@@ -10,6 +10,7 @@ from psychopy.hardware import keyboard
 import numpy as np
 import utils
 import time
+import random
 
 """
 Functions
@@ -97,6 +98,7 @@ NCATCH = 0 # number of catch trials
 POSITIONS = 0
 ORIS = [15, 45, 75, 105, 135, 165]
 NTRIALS_BREAK = 50  # Number of trials between breaks
+NTRIALS_PRAC = 10 # number of practice trials
 
 # Questions and messages
 MESSAGE_POS = [0, 0]  # [x, y]
@@ -286,71 +288,94 @@ start_experiment = time.time()
 
 writer = utils.csv_writer(cond, V["subject"], dirs["csv"])
 
+def experiment(trials, ntrials = None, isPrac = False):
+    
+    if isPrac:
+        prac_idx = random.sample(range(len(trials)), ntrials) # random index
+        trials = [trials[i] for i in prac_idx] # select only practice trials
+
+    # Start Experiment
+
+    for i in range(len(trials)):
+        
+        if i % 3 == 0 and i != 0:
+            ask(kb, text, TXT_BREAK, ["space"])
+        
+        # Init trial
+        trial = trials[i] # get current dictionary
+        quest_trial = trial['quest']
+        contrast_trial = quest_list[quest_trial]._nextIntensity
+        gabor_memory.contrast = contrast_trial
+        gabor_memory.ori = trial['memory_ori']
+        gabor_test.ori = trial['test_ori']
+        texture = np.random.rand(256, 256) * 2.0 - 1 # the numpy array must
+        mask.tex = texture
+        
+        # Fixation
+        for frame in range(FRAMES_FIX):
+            fix.draw()
+            win.flip()
+            
+        # Gabor
+        for frame in range(FRAMES_STIM):
+            gabor_memory.draw()
+            win.flip()
+            
+        # Mask
+        for frame in range(FRAMES_MASK):
+            mask.draw()
+            win.flip()
+            
+        # Retention
+        for frame in range(FRAMES_TARGET_RESP):
+            fix.draw()
+            win.flip()
+            
+        # Test
+        test_resp, test_rt = ask(kb, gabor_test, keyList = list(TEST_RESP.keys()), hold = True)
+        
+        # PAS
+        pas_resp, pas_rt = ask(kb, text, PAS_RESPONSE, list(PAS_RESP.keys())) # pas
+        
+        # ITI
+        win.flip() # blank screen
+        core.wait(ITI)
+        
+        # Update QUEST
+        vis_resp = VIS_RESP[PAS_RESP[str(pas_resp)]] # coverting to 0-1
+        quest_list[quest_trial].addResponse(vis_resp) # updating
+        
+        # Update Dict
+        trial['contrast'] = contrast_trial
+        trial['test_key'] = test_resp
+        trial['test'] = TEST_RESP[test_resp]
+        trial['test_rt'] = test_rt
+        trial['pas'] = pas_resp
+        trial['pas_rt'] = pas_rt
+        trial['vis'] = vis_resp
+
+        # Saving Data
+        if not isPrac:
+            writer.write(trial)
+
+duration_experiment = time.time() - start_experiment
+
+"""
+Running Experiment
+"""
+
 # Welcome
 ask(kb, text, INSTR_WELCOME, ['space'])
 
-for i in range(len(trials)):
-    
-    if i % 3 == 0 and i != 0:
-        ask(kb, text, TXT_BREAK, ["space"])
-    
-    # Init trial
-    trial = trials[i] # get current dictionary
-    quest_trial = trial['quest']
-    contrast_trial = quest_list[quest_trial]._nextIntensity
-    gabor_memory.contrast = contrast_trial
-    gabor_memory.ori = trial['memory_ori']
-    gabor_test.ori = trial['test_ori']
-    texture = np.random.rand(256, 256) * 2.0 - 1 # the numpy array must
-    mask.tex = texture
-    
-    # Fixation
-    for frame in range(FRAMES_FIX):
-        fix.draw()
-        win.flip()
-        
-    # Gabor
-    for frame in range(FRAMES_STIM):
-        gabor_memory.draw()
-        win.flip()
-        
-    # Mask
-    for frame in range(FRAMES_MASK):
-        mask.draw()
-        win.flip()
-        
-    # Retention
-    for frame in range(FRAMES_TARGET_RESP):
-        fix.draw()
-        win.flip()
-        
-    # Test
-    test_resp, test_rt = ask(kb, gabor_test, keyList = list(TEST_RESP.keys()), hold = True)
-    
-    # PAS
-    pas_resp, pas_rt = ask(kb, text, PAS_RESPONSE, list(PAS_RESP.keys())) # pas
-    
-    # ITI
-    win.flip() # blank screen
-    core.wait(ITI)
-    
-    # Update QUEST
-    vis_resp = VIS_RESP[PAS_RESP[str(pas_resp)]] # coverting to 0-1
-    quest_list[quest_trial].addResponse(vis_resp) # updating
-    
-    # Update Dict
-    trial['contrast'] = contrast_trial
-    trial['test_key'] = test_resp
-    trial['test'] = TEST_RESP[test_resp]
-    trial['test_rt'] = test_rt
-    trial['pas'] = pas_resp
-    trial['pas_rt'] = pas_rt
-    trial['vis'] = vis_resp
+# TODO add instructions
 
-    # Saving Data
-    writer.write(trial)
+# Practice
+ask(kb, text, PRAC_INSTRUCTIONS, ["space"])
+experiment(trials, ntrials = NTRIALS_PRAC, isPrac=True)
 
-duration_experiment = time.time() - start_experiment
+# Experiment
+ask(kb, text, INSTR_START_EXPERIMENT, ["space"])
+experiment(trials)
 
 # Backup Data
 
