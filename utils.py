@@ -7,6 +7,7 @@ import itertools
 import random
 import shelve
 import pickle
+from scipy import stats
 
 def make_dirs():
     dirs = {
@@ -15,6 +16,7 @@ def make_dirs():
     }
     return dirs
 
+# TODO check if the with open statment is too slow
 class csv_writer:
     def __init__(self, cond, subject='', folder=''):
         # Generate self.save_file and self.writer
@@ -151,4 +153,44 @@ def create_conditions(cond, prop_catch = 2/3):
     ncatch = int(len(catch_list)*prop_catch) # number of catch
     idx = random.sample(range(len(valid_list)), ncatch) # random index
     catch_list = [catch_list[i] for i in idx] # subset list
-    return valid_list + catch_list # combine and return
+    return valid_list + catch_list, len(valid_list), ncatch # combine and return
+
+# String to boolean for GUI (thanks to https://stackoverflow.com/a/715468/9032257)
+
+def str2bool(v):
+  return str(v).lower() in ("yes", "true", "t", "1")
+
+class simKeys:
+    '''
+    an object to simulate key presses
+    
+    keyList: a list of keys to watch
+    name: randomly selected from keyList
+    rtRange: [min RT, max RT] where min and max RT are sepecified in ms
+    rt: randomly selected from rtRange
+    thanks to Becca https://discourse.psychopy.org/t/auto-response-script-in-psychopy/19349
+        
+    '''
+    def __init__(self, keyList, rtRange, obs):
+        keyList = [x for x in keyList if x != 'escape']
+        if obs is not None:
+            self.name = obs.get_resp() # get response based on observer
+        else:
+            self.name=np.random.choice(keyList)
+        self.rt = np.random.choice(np.linspace(rtRange[0], rtRange[1])/1000)
+        
+class psy_observer:
+    def __init__(self, threshold, slope, guess, lapses):
+        self.threshold = threshold
+        self.slope = slope
+        self.guess = guess
+        self.lapses = lapses
+        self.xi = 0
+    def get_resp(self):
+        pi = self.guess + (1 - self.guess - self.lapses) * stats.norm.cdf(self.xi, self.threshold, self.slope)
+        ri = np.random.binomial(1, pi, 1)[0] # get 01 according to
+        if ri == 1:
+            ri = np.random.choice([2,3,4])
+        else:
+            ri = 1
+        return str(ri)
