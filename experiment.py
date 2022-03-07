@@ -15,6 +15,8 @@ import random
 Functions
 """
 
+# TODO check if is correct to set the test ori in this way doubt about the clock/anticlock
+
 def set_ori(trials, diff):
     """
     Assign the correct orientation for a given difference (diff)
@@ -83,7 +85,7 @@ SET VARIABLES
 # Monitor parameters
 MON_DISTANCE = 60  # Distance between subject's eyes and monitor
 MON_WIDTH = 51  # Width of your monitor in cm
-MON_SIZE = [600, 600]  # Pixel-dimensions of your monitor
+MON_SIZE = [1920, 1080]  # Pixel-dimensions of your monitor
 
 # Stimulus parameters
 GABOR_SF = 3.7  # 4 cycles per degree visual angle
@@ -101,7 +103,7 @@ ITI = 1
 PRAC_TRIALS = 5 # number of practice trials
 REPETITIONS = 7  # number of trials per condition
 POSITIONS = 0
-ORIS = [15, 45, 75, 105, 135, 165] # orientations
+ORIS = [15, 45, 75, 105, 135, 165] # orientations TODO check if other oris
 NTRIALS_BREAK = 50  # Number of trials between breaks
 NTRIALS_PRAC = 10 # number of practice trials
 
@@ -118,6 +120,8 @@ TEST_RESP = {'f': 'change', 'j': 'same'} # keys for the change detection task
 """
 Text Messages
 """
+
+# TODO check instructions in italian
 
 INSTR_WELCOME = """
     Benvenutə in questo esperimento!
