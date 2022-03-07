@@ -226,6 +226,7 @@ cond = {
     "subject": V['subject'],
     "age": V['age'],
     "gender": V["gender"],
+    "ntrial": [0],
     "memory_ori": ORIS,
     'test_ori': [0],
     "type": ["change", "same"],
@@ -377,6 +378,7 @@ def experiment(trials, ntrials = None, isPrac = False):
         trial['pas'] = pas_resp
         trial['pas_rt'] = pas_rt
         trial['vis'] = vis_resp
+        trial['ntrial'] = i + 1 # setting the correct trial number
 
         # Saving Data
         if not isPrac:
