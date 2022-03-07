@@ -1,0 +1,23 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Unconscious WM Behavioral
+
+This repository contains the scripts to reproduce the experiment.
+
+# Todo
+
+```{r, result = 'asis', echo = FALSE}
+todo <- readr::read_lines("todo.txt")
+cat(todo, sep = "\n")
+```
