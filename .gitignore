@@ -1,3 +1,4 @@
 old/*
 !*/.gitkeep
 *.code-workspace
+__pycache__/
