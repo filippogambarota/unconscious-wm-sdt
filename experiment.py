@@ -34,11 +34,12 @@ def set_ori(trials, diff):
             trial['test_ori'] = ori
     return trials
 
-def ask(kb, obj, msg = None, keyList=None, quit = 'escape', before = '', after = '', hold = False):
+def ask(kb, obj, msg = None, keyList=None, quit = 'escape', before = '', after = '', hold = False, simulate = False, rtRange = [200, 2000], obs = None):
     """
     Display a msg and wait for keyboard (kb) response.
     Return the pressed key and the reaction time. Can append a before/after string. If hold = True no text is used. Useful for asking for a response while the stimulus is on the screen.
     """
+    keyList_sim = keyList.copy() # keylist without escape for simulation
     keyList.append(quit)
     
     if hold:
@@ -51,9 +52,17 @@ def ask(kb, obj, msg = None, keyList=None, quit = 'escape', before = '', after =
     win.flip()
     
     # select the first (only) response
-    key = kb.waitKeys(keyList = keyList, waitRelease = True)[0]
+    if simulate:
+        keypress = utils.simKeys(keyList_sim, rtRange, obs)
+        core.wait(keypress.rt)
+        key_name = keypress.name
+        key_rt = keypress.rt
+    else:
+        key = kb.waitKeys(keyList = keyList, waitRelease = True)[0]
+        key_name = key.name
+        key_rt = key.rt
     
-    return before + key.name + after, key.rt
+    return before + key_name + after, key_rt
 
 # Kill switch for Psychopy3 
 esc_key = 'escape'
@@ -195,15 +204,14 @@ print('the physical size of the fixation cross should be', utils.deg2cm(FIX_HEIG
  This is computationally heavy stuff. Thus we do it in the beginning of our experiment
 """
 
-# Intro-dialogue. Get subject-id and other variables.
-# Save input variables in "V" dictionary (V for "variables")
-V = {'subject':'', 'age':'', 'gender':['male', 'female']}
-
-dirs = utils.make_dirs() # create relevant dirs
-
+V = {'subject':'', 'age':'', 'gender':['male', 'female'], 'simulate':[False, True]}
 #V = {'subject':'', 'age':'', 'gender':['male', 'female']}
 if not gui.DlgFromDict(V, order=['subject', 'age', 'gender']).OK:
     core.quit()
+
+V['simulate'] = utils.str2bool(V['simulate']) # force to boolean from the gui
+
+dirs = utils.make_dirs()
 
 """
 Create Condition Dictionary
@@ -266,6 +274,8 @@ Quest
 Here we create the quest staircases with parameters. Each staircase will run for ntrials/nstaircase trials
 """
 
+obs = utils.psy_observer(0.5, 0.2, 0, 0) # init ideal observer for simulation
+
 quest_50 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     pThreshold=0.5, gamma=0, delta = 0,
     minVal=0, maxVal=1,
@@ -303,12 +313,13 @@ def experiment(trials, ntrials = None, isPrac = False):
         
         # Check for break
         if i % NTRIALS_BREAK == 0 and i != 0:
-            ask(kb, text, TXT_BREAK, ["space"])
+            ask(kb, text, TXT_BREAK, ["space"], simulate=V['simulate'])
         
         # Init trial
         trial = trials[i] # get current dictionary
         quest_trial = trial['quest'] # get index quest
         contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
+        obs.xi = contrast_trial # add contrast to observer
         gabor_memory.contrast = contrast_trial # assign contrast to memory
         gabor_memory.ori = trial['memory_ori'] # assign ori to memory
         gabor_test.ori = trial['test_ori'] # assign ori to test
@@ -337,10 +348,10 @@ def experiment(trials, ntrials = None, isPrac = False):
             win.flip()
             
         # Test
-        test_resp, test_rt = ask(kb, gabor_test, keyList = list(TEST_RESP.keys()), hold = True)
+        test_resp, test_rt = ask(kb, gabor_test, keyList = list(TEST_RESP.keys()), hold = True, simulate=V['simulate'])
         
         # PAS
-        pas_resp, pas_rt = ask(kb, text, PAS_RESPONSE, list(PAS_RESP.keys())) # pas
+        pas_resp, pas_rt = ask(kb, text, PAS_RESPONSE, list(PAS_RESP.keys()), simulate=V['simulate'], obs=obs) # pas
         
         # ITI
         win.flip() # blank screen
@@ -374,16 +385,16 @@ Actual Experiment Running
 """
 
 # Welcome
-ask(kb, text, INSTR_WELCOME, ['space'])
+ask(kb, text, INSTR_WELCOME, ['space'], simulate=V['simulate'])
 
 # TODO add instructions
 
 # Practice
-ask(kb, text, PRAC_INSTRUCTIONS, ['space'])
+ask(kb, text, PRAC_INSTRUCTIONS, ['space'], simulate=V['simulate'])
 experiment(trials, ntrials = NTRIALS_PRAC, isPrac=True)
 
 # Experiment
-ask(kb, text, INSTR_START_EXPERIMENT, ['space'])
+ask(kb, text, INSTR_START_EXPERIMENT, ['space'], simulate=V['simulate'])
 experiment(trials)
 
 # Backup Data
