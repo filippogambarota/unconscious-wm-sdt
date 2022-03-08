@@ -21,3 +21,10 @@ This repository contains the scripts to reproduce the experiment.
 todo <- readr::read_lines("todo.txt")
 cat(todo, sep = "\n")
 ```
+
+# Note
+
+```{r, result = 'asis', echo = FALSE}
+note <- readr::read_lines("notes.md")
+cat(note, sep = "\n")
+```
