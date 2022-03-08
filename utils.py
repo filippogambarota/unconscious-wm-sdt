@@ -138,7 +138,9 @@ def restore_objects(dict_to_restore):
     Returns:
         dict: A dictionary with restored objects
     """
-    with open(dict_to_restore, "rb") as backup_file:
+    filename = os.path.join(os.path.dirname(__file__), dict_to_restore)
+    
+    with open(filename, "rb") as backup_file:
         restored_file = pickle.load(backup_file)
     return restored_file
 
@@ -156,6 +158,7 @@ def create_conditions(cond, prop_catch = 2/3):
     trial_list = [{key:value for value, key in zip(tup, cond)} for tup in tup_list]
     valid_list = [d for d in trial_list if d["trial_type"] == "valid"] # subset valid
     catch_list = [d for d in trial_list if d["trial_type"] == "catch"] # subset catch
+    # TODO set the same number of catch for each staircase
     ncatch = int(len(catch_list)*prop_catch) # number of catch
     idx = random.sample(range(len(valid_list)), ncatch) # random index
     catch_list = [catch_list[i] for i in idx] # subset list
