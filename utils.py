@@ -5,9 +5,9 @@ import math
 import numpy as np
 import itertools
 import random
-import shelve
 import pickle
 from scipy import stats
+from psychopy import visual, core
 
 def make_dirs():
     dirs = {
@@ -18,8 +18,16 @@ def make_dirs():
 
 # TODO check if the with open statment is too slow
 class csv_writer:
+    """Create an object to save data trial-by-trial. using writer = csv_writer() create a csv file with column names. Then using writer.write(dict) the csv a row will be added to the csv file.
+    """
     def __init__(self, cond, subject='', folder=''):
-        # Generate self.save_file and self.writer
+        """Initialize the csv_writer object
+
+        Args:
+            cond (dict): A dictionary with all experiment conditions. Keys will be used as column names
+            subject (str, optional): The subject number. Defaults to ''.
+            folder (str, optional): The CSV folder. Defaults to ''.
+        """
         filename = '{}_({}).csv'
         current_time = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
         subject_path = os.path.join(folder, str(subject))
@@ -27,29 +35,20 @@ class csv_writer:
         self.colnames = list(cond.keys())
         self._setup_file()
     def _setup_file(self):
+        """Initialize the csv writer object creating the file and writing the header
+        """
         with open(self.save_file, 'w', newline='') as file: # w for creating
             self.writer = csv.DictWriter(file, fieldnames = self.colnames)
             self.writer.writeheader()
     def write(self, trial):
+        """Takes a dictionary and write the values on the csv file.
+
+        Args:
+            trial (dict): A dictionary that identify the current trial to write
+        """
         with open(self.save_file, 'a', newline='') as file: # a for appending
             self.writer = csv.DictWriter(file, fieldnames = self.colnames)
             self.writer.writerow(trial)
-            
-class csv_writer_old:
-    def __init__(self, cond, subject='', folder=''):
-        # Generate self.save_file and self.writer
-        filename = '{}_({}).csv'
-        current_time = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-        subject_path = os.path.join(folder, str(subject))
-        self.save_file = filename.format(subject_path, current_time)
-        self.colnames = list(cond.keys())
-        self._setup_file()
-    def _setup_file(self):
-        self._file = open(self.save_file, "a", newline='')
-        self.writer = csv.DictWriter(self._file, fieldnames = self.colnames)
-        self.writer.writeheader()
-    def write(self, trial):
-        self.writer.writerow(trial)
         
 def deg2cm(angle, distance):
     """
@@ -68,8 +67,7 @@ def getActualFrameRate(frames=1000):
     you'd think. Prints various useful information.
         :frames: number of frames to do test on.
     """
-    from psychopy import visual, core
-
+    
     # Set stimuli up
     durations = []
     clock = core.Clock()
@@ -97,54 +95,62 @@ def getActualFrameRate(frames=1000):
     print('corresponding to a framerate of', round(1 / np.average(durations), 3), 'Hz')
     print('60 frames on your monitor takes', round(np.average(durations) * 60 * 1000, 3), 'ms')
     print('shortest duration was ', round(min(durations) * 1000, 3), 'ms and longest duration was ', round(max(durations) * 1000, 3), 'ms')
-    
-# Backup session thanks to https://medium.com/swlh/python-for-datascientist-quick-backup-for-everything-6d201a7e935d
 
 def is_picklable(obj):
+    """Check if an object can be converted to pkl. Useful to filter a list of objects to save
+
+    Args:
+        obj (_type_): A general python variable
+
+    Returns:
+        Logical: True if the object can be converted to pkl
+    """
+
     try:
         pickle.dumps(obj)
     except Exception:
         return False
     return True
 
-def backup_session(folder, subject):
-    filename = "s" + str(subject) + "_" + "session.pkl"
-    backup = os.path.join(folder, filename)
-    
-    bk = shelve.open(backup,'n')
-    for k in dir():
-        try:
-            bk[k] = globals()[k]
-        except Exception:
-            pass
-    bk.close()
-    
-    # to restore
-    #bk_restore = shelve.open('./your_bk_shelve.pkl')
-    #for k in bk_restore:
-    #    globals()[k] = bk_restore[k]
-    #bk_restore.close()
-
 def save_objects(folder, subject, dict_to_save):
+    """Save a list of objects in pkl format.
+
+    Args:
+        folder (string): Folder where saving the pkl file
+        subject (string): Subject numeber
+        dict_to_save (dict): Dictionary with object to save
+    """
     
     filename = "s" + str(subject) + "_" + "session.pkl"
     backup = os.path.join(folder, filename)
+    # subset only good elements
+    dict_to_save = {k:v for (k, v) in dict_to_save.items() if is_picklable(v)}
     
     with open(backup, "wb") as backup_file:
         pickle.dump(dict_to_save, backup_file)
         
 def restore_objects(dict_to_restore):
-    import pickle
-    import os
-    
+    """Restore a pkl file in the python session
+
+    Args:
+        dict_to_restore (string): The pkl file to restore
+
+    Returns:
+        dict: A dictionary with restored objects
+    """
     with open(dict_to_restore, "rb") as backup_file:
         restored_file = pickle.load(backup_file)
     return restored_file
 
 def create_conditions(cond, prop_catch = 2/3):
-    
-    """
-    Create conditions. Equivalent to R expand.grid() or in python creating multiple for loops and combining into a dictionary
+    """Cartesian product of all dictionary values creating a list of dictionaries as trials for the main experiment.
+
+    Args:
+        cond (dict): Dictionary with all conditions
+        prop_catch (float, optional): The proportions of catch trials to include. Defaults to 2/3.
+
+    Returns:
+        _list_: _list of dictionaries with all_
     """
     tup_list = list(itertools.product(*cond.values()))
     trial_list = [{key:value for value, key in zip(tup, cond)} for tup in tup_list]
@@ -155,10 +161,20 @@ def create_conditions(cond, prop_catch = 2/3):
     catch_list = [catch_list[i] for i in idx] # subset list
     return valid_list + catch_list, len(valid_list), ncatch # combine and return
 
-# String to boolean for GUI (thanks to https://stackoverflow.com/a/715468/9032257)
-
 def str2bool(v):
-  return str(v).lower() in ("yes", "true", "t", "1")
+    """Convert a generic string to boolean. Thanks to https://stackoverflow.com/a/715468/9032257)
+
+    Args:
+        v (_string_): _A string to be converted_
+
+    Returns:
+        _boolean_: _The boolean value associated with the string_
+    """
+    return str(v).lower() in ("yes", "true", "t", "1")
+
+"""
+SIMULATION FUNCTIONS
+"""
 
 class simKeys:
     '''
@@ -172,6 +188,13 @@ class simKeys:
         
     '''
     def __init__(self, keyList, rtRange, obs):
+        """Init the simKeys object
+
+        Args:
+            keyList (_list_): _list of strings that idenfity the available keys_
+            rtRange (_tuple_): _tuple with the reaction time range_
+            obs (_object_): _An observer object created with the psy_observer class_
+        """
         keyList = [x for x in keyList if x != 'escape']
         if obs is not None:
             self.name = obs.get_resp() # get response based on observer
@@ -180,13 +203,28 @@ class simKeys:
         self.rt = np.random.choice(np.linspace(rtRange[0], rtRange[1])/1000)
         
 class psy_observer:
+    """_Create an ideal observer for a psychophysical task based on a psychometric function (cumulative normal)_
+    """
     def __init__(self, threshold, slope, guess, lapses):
+        """_Init the ideal observer_
+
+        Args:
+            threshold (_float_): _The threshold of the psychometric function_
+            slope (_float_): _The slope of the psychometric function_
+            guess (_type_): _The false alarm rate (lower bound)_
+            lapses (_type_): _The lapse rate (upper bound)_
+        """
         self.threshold = threshold
         self.slope = slope
         self.guess = guess
         self.lapses = lapses
         self.xi = 0
     def get_resp(self):
+        """_Generate a PAS response as string. 1 = 0 and 2,3,4 = 1_
+
+        Returns:
+            _string_: _The PAS response for that trial_
+        """
         pi = self.guess + (1 - self.guess - self.lapses) * stats.norm.cdf(self.xi, self.threshold, self.slope)
         ri = np.random.binomial(1, pi, 1)[0] # get 01 according to
         if ri == 1:
