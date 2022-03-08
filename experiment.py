@@ -307,6 +307,8 @@ quest_80 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     minVal=0, maxVal=1,
     ntrials = round(nvalid/3))
 
+# TODO icrease the quest 0.80 to 0.85
+
 quest_list = [quest_50, quest_70, quest_80] # list of QUEST in order to randomize the presentation. TODO check if better using the multistairhandler
 
 """
