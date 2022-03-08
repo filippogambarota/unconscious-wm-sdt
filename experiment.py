@@ -303,7 +303,7 @@ quest_70 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     ntrials = round(nvalid/3))
 
 quest_80 = data.QuestHandler(0.5, 0.2, beta = 3.5,
-    pThreshold=0.8, gamma=0, delta = 0,
+    pThreshold=0.85, gamma=0, delta = 0,
     minVal=0, maxVal=1,
     ntrials = round(nvalid/3))
 
@@ -334,7 +334,12 @@ def experiment(trials, ntrials = None, isPrac = False):
         # Init trial
         trial = trials[i] # get current dictionary
         quest_trial = trial['quest'] # get index quest
-        contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
+        
+        # Check if catch and set contrast to 0, else take the QUEST
+        if trial["trial_type"] == "catch":
+            contrast_trial = 0
+        else:
+            contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
         obs.xi = contrast_trial # add contrast to observer
         gabor_memory.contrast = contrast_trial # assign contrast to memory
         gabor_memory.ori = trial['memory_ori'] # assign ori to memory
@@ -379,7 +384,7 @@ def experiment(trials, ntrials = None, isPrac = False):
         # Update QUEST
         vis_resp = VIS_RESP[PAS_RESP[str(pas_resp)]] # coverting to 0-1
         
-        if trial[ "trial_type"] == "valid": # update only if not catch
+        if trial[ "trial_type"] == "valid": # update only if valid
             quest_list[quest_trial].addResponse(vis_resp) # updating
         
         # Update Dict
