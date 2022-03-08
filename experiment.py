@@ -36,7 +36,7 @@ def set_ori(trials, diff):
             trial['test_ori'] = ori
     return trials
 
-def ask(kb, obj, msg = None, keyList=None, quit = 'escape', before = '', after = '', hold = False, simulate = False, rtRange = [200, 2000], obs = None):
+def ask(kb, obj = None, msg = None, keyList=None, quit = 'escape', before = '', after = '', hold = False, simulate = False, rtRange = [200, 2000], obs = None, pos = (0,0)):
     """
     Display a msg and wait for keyboard (kb) response.
     Return the pressed key and the reaction time. Can append a before/after string. If hold = True no text is used. Useful for asking for a response while the stimulus is on the screen.
@@ -44,9 +44,8 @@ def ask(kb, obj, msg = None, keyList=None, quit = 'escape', before = '', after =
     keyList_sim = keyList.copy() # keylist without escape for simulation
     keyList.append(quit)
     
-    if hold:
-        obj.draw()
-    else:
+    if not hold:
+        obj.pos = pos
         obj.text = msg
         obj.draw()
     
@@ -121,82 +120,85 @@ TEST_RESP = {'f': 'change', 'j': 'same'} # keys for the change detection task
 Text Messages
 """
 
-# TODO check instructions in italian
-
 INSTR_WELCOME = """
     Benvenutə in questo esperimento!
     
     Premi la barra spaziatrice per continuare!
 """
+
+INSTR_GENERAL = """
+    In questo esperimento vedrai una croce di fissazione, seguita da uno stimolo visivo presentato molto velocemente che dovrai cercare di memorizzare. Dopo un breve intervallo (circa 1 secondo) comparirà un altro stimolo visivo. Il tuo compito è confrontare il primo stimolo con il secondo e poi riportare la tua esperienza visiva del primo stimolo.
+    
+    Premi la barra spaziatrice per continuare le istruzioni
+"""
     
 INSTR_GABOR = """
-    In this first part you need to report the visibility of briefly presented stimuli. 
-    These stimuli called gabor patches (or gratings) are simple shapes where the orientation is the main feature.
-    The stimulus will be briefly presented and followed by an irrelevant stimulus (mask).
-    Press the spacebar to continue!"""
+    Gli stimoli che useremo si chiamano Gabor patch. Sono delle griglie circolari in bianco e nero, che possono essere ruotate con diversi orientamenti. Ecco un esempio:
+"""
 
-INSTR_FIX_RESP = """
-    The experiment trial start with a fixation cross followed by 2 arrows that indicate the left or the right side of the screen.
-    You need to focus your attention on the cued side and report the visibility of the stimulus.
-    You can use the mouse clicking on the white square associated with these alternatives:
-
-    - I did not see the stimulus
-    - I saw only a brief glimpse of the stimulus
-    - I almost saw the stimulus
-    - I clearly saw the stimulus
+INSTR_MASKING = """
+    La prima Gabor sarà presentata molto velocemente e seguita da un'altro stimolo formato da rumore visivo bianco e nero. Dovrai focalizzarti solo sulla Gabor e sul suo orientamento, il secondo stimolo non è rilevante.
     
-    Press the spacebar to continue """
-    
-INSTR_EXPERIENCE = """
-    IMPORTANT: Remember that there are no correct or wrong responses. 
-    We are interested in understanding your personal experience so choose the response that match your experience as much as possible.
-    
-    Press the spacebar to continue """
+    Essendo presentata velocemente, alcune volte sarà più difficile vederla e altre volte non vedrai proprio niente. Non ti preoccupare è totalmente normale.
+"""
 
-INSTR_ATTENTION = """
-    During the entire experiment, try to keep the eyes on the fixation cross. When you see the stimuli focus your attention on the cued side without moving your gaze.
-    Before starting we are going to see some example of stimuli do some practice trials.
+INSTR_MEMORY = """
+    Il tuo compito è quello di focalizzarti sulla Gabor e sul suo orientamento e cercare di mantenerla in memoria. 
     
-    Press the spacebar to continue """
+    Anche se non hai visto chiaramente la Gabor non ti preoccupare, cerca di mantenere in memoria comunque.
+"""
 
-INSTR_EXAMPLE_GABOR = """
-    You are gonna see stimuli like this:
+INSTR_PROBE = """
+    Dopo un breve intervallo, comparirà sempre al centro un'altra Gabor che potrà avere un orientamento UGUALE o DIVERSO rispetto a quello che hai visto in precedenza. Il tuo compito è rispondere più accuratamente possibile se l'orientamento è uguale o diverso. 
+    Se non hai visto la Gabor non ti preoccupare, tenta comunque di dare la risposta, anche se dovessi rispondere casualmente.
+    
+    Premi "F" se l'orientamento è UGUALE
+    Premi "J" se l'orientamento è DIVERSO
+"""
+# TODO check the pas translation
 
-    Press the spacebar to continue """
+INSTR_PAS = """
+    Infine ti sarà chiesto di riportare la tua ESPERIENZA VISIVA della prima Gabor (quella presentata velocemente). Ricorda che in questa domanda non ci sono risposte giuste o sbagliate. Siamo solo interessati a comprendere la tua esperienza il più accuratamente possibile.
+    
+    Puoi usare queste opzioni di risposta:
+    
+    1 = Non ho visto nessuno stimolo
+    2 = Ho la sensazione di aver visto uno stimolo
+    3 = Ho visto abbastanza chiaramente lo stimolo
+    4 = Ho visto chiaramente lo stimolo
+"""
     
 INSTR_START_EXPERIMENT = """
-    The practice is finished!
+    La pratica è finita!
     
-    Press the spacebar to start the main experiment!
+    Se vuoi possiamo fare qualche altro trial di prova.
+    
+    Premi P per fare ancora un pochino di pratica
+    Premi la barra spaziatrice per cominciare l'esperimento
 """
-
-EXP_INTRODUCTION_FINAL = """
-    
-    Please remember that there are no correct or wrong responses, 
-    
-    simply try to report your subjective experience as much as possible.
-
-    Press the spacebar to continue """
 
 PRAC_INSTRUCTIONS = """
-    You are gonna do some practice trials.
+    Prima di cominciare l'esperimento facciamo qualche trial di prova.
 
-    Press the spacebar to continue """
+    Premi la barra spaziatrice per cominciare
+"""
     
 PAS_RESPONSE = """
-1 = "I did not see the stimulus"
-2 = "I saw only a brief glimpse of the stimulus"
-3 = "I almost saw the stimulus"
-4 = "I clearly saw the stimulus"
+1 = Non ho visto lo stimolo
+2 = Ho la sensazione di aver visto uno stimolo
+3 = Ho visto abbastanza chiaramente lo stimolo
+4 = Ho visto chiaramente lo stimolo
 """
 
-END_INSTRUCT = """
-    Thank you for the participation!
-    Just few seconds, I'm saving images for the main experiment! :)
+END_EXPERIMENT = """
+    L'esperimento è finito!
+    
+    Grazie per aver partecipato! :)
 """
 
 TXT_BREAK = """
 Puoi prenderti una pausa!
+
 Premi la barra spaziatrice per continuare l'esperimento!
 """
 
@@ -264,13 +266,16 @@ OBJECTS
 """
 
 fix = visual.TextStim(win, '+', height=FIX_HEIGHT)  # Fixation cross is just the character "+". Units are inherited from Window when not explicitly specified.
+
+gabor_prac = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0))  # A gabor patch. Again, units are inherited.
+
 gabor_memory = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0))  # A gabor patch. Again, units are inherited.
 
 gabor_test = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0), contrast = 1)  # A gabor patch. Again, units are inherited.
 
 mask = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=False, mask="circle", pos = (0, 0)) # mask for the backward masking. The texture is generated trial-by-trial
 
-text = visual.TextStim(win, pos=MESSAGE_POS, height=MESSAGE_HEIGHT, wrapWidth=40)  # Message / question stimulus. Will be used to display instructions and questions.
+text = visual.TextStim(win, pos=MESSAGE_POS, height=MESSAGE_HEIGHT, wrapWidth=30)  # Message / question stimulus. Will be used to display instructions and questions.
 
 kb = keyboard.Keyboard() # init the keyboard
 
@@ -280,6 +285,8 @@ Here we create the quest staircases with parameters. Each staircase will run for
 """
 
 obs = utils.psy_observer(0.5, 0.2, 0, 0) # init ideal observer for simulation
+
+# TODO set better values for gamma/delta
 
 quest_50 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     pThreshold=0.5, gamma=0, delta = 0,
@@ -353,7 +360,8 @@ def experiment(trials, ntrials = None, isPrac = False):
             win.flip()
             
         # Test
-        test_resp, test_rt = ask(kb, gabor_test, keyList = list(TEST_RESP.keys()), hold = True, simulate=V['simulate'])
+        gabor_test.draw() # drawing gabor for holding
+        test_resp, test_rt = ask(kb, keyList = list(TEST_RESP.keys()), hold = True, simulate=V['simulate'])
         
         # PAS
         pas_resp, pas_rt = ask(kb, text, PAS_RESPONSE, list(PAS_RESP.keys()), simulate=V['simulate'], obs=obs) # pas
@@ -393,15 +401,53 @@ Actual Experiment Running
 # Welcome
 ask(kb, text, INSTR_WELCOME, ['space'], simulate=V['simulate'])
 
-# TODO add instructions
+# Instructions
+ask(kb, text, INSTR_GENERAL, ['space'], simulate=V['simulate'])
+
+# Demo Gabor
+gabor_prac.ori = 45
+gabor_prac.pos = (-8, -5)
+gabor_prac.draw()
+gabor_prac.ori = 0
+gabor_prac.pos = (0, -5)
+gabor_prac.draw()
+gabor_prac.ori = 90
+gabor_prac.pos = (8, -5)
+gabor_prac.draw()
+
+ask(kb, text, INSTR_GABOR, ['space'], simulate=V['simulate'], pos = (0, 5))
+
+# Demo Masking
+
+mask.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for
+mask.pos = (5, -5)
+gabor_prac.ori = 45
+gabor_prac.pos = (-5, -5)
+mask.draw()
+gabor_prac.draw()
+
+ask(kb, text, INSTR_MASKING, ['space'], simulate=V['simulate'], pos = (0, 5))
+
+# Probe
+ask(kb, text, INSTR_PROBE, ['space'], simulate=V['simulate'])
+
+# PAS
+ask(kb, text, INSTR_PAS, ['space'], simulate=V['simulate'])
 
 # Practice
-ask(kb, text, PRAC_INSTRUCTIONS, ['space'], simulate=V['simulate'])
+prac_resp, *_ = ask(kb, text, PRAC_INSTRUCTIONS, ['space', 'p'], simulate=V['simulate'])
+
 experiment(trials, ntrials = NTRIALS_PRAC, isPrac=True)
+
+if prac_resp == "p": # check if running prac again
+    experiment(trials, ntrials = NTRIALS_PRAC, isPrac=True)
 
 # Experiment
 ask(kb, text, INSTR_START_EXPERIMENT, ['space'], simulate=V['simulate'])
 experiment(trials)
+
+# END
+ask(kb, text, END_EXPERIMENT, ['space'], simulate=V['simulate'])
 
 # Backup Data
 
