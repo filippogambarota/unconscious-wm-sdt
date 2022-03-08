@@ -4,6 +4,7 @@
 Modules
 """
 
+import csv
 from psychopy import core, visual, gui, monitors, event, data # psychopy stuff
 from psychopy.hardware import keyboard
 import numpy as np
@@ -225,9 +226,9 @@ Each element of the dictonary will be combined using itertools.product() in orde
 """
 
 cond = {
-    "subject": V['subject'],
-    "age": V['age'],
-    "gender": V["gender"],
+    "subject": [V['subject']],
+    "age": [V['age']],
+    "gender": [V["gender"]],
     "ntrial": [0],
     "memory_ori": ORIS,
     'test_ori': [0],
@@ -257,6 +258,7 @@ my_monitor.setSizePix(MON_SIZE)
 
 win = visual.Window(monitor=my_monitor, units='deg', fullscr=True, allowGUI=False, color=background_color)  # Initiate psychopy Window as the object "win", using the myMon object from last line. Use degree as units!
 objects_color = "white"
+win.mouseVisible = False # hide mouse
 
 # Init the trial-by-trial saving function
 writer = utils.csv_writer(cond, V["subject"], dirs["csv"])
@@ -274,6 +276,8 @@ gabor_memory = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR
 gabor_test = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0), contrast = 1)  # A gabor patch. Again, units are inherited.
 
 mask = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=False, mask="circle", pos = (0, 0)) # mask for the backward masking. The texture is generated trial-by-trial
+
+mask_prac = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=False, mask="circle", pos = (0, 0)) # mask for the backward masking. The texture is generated trial-by-trial
 
 text = visual.TextStim(win, pos=MESSAGE_POS, height=MESSAGE_HEIGHT, wrapWidth=30)  # Message / question stimulus. Will be used to display instructions and questions.
 
@@ -419,8 +423,8 @@ ask(kb, text, INSTR_GABOR, ['space'], simulate=V['simulate'], pos = (0, 5))
 
 # Demo Masking
 
-mask.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for
-mask.pos = (5, -5)
+mask_prac.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for
+mask_prac.pos = (5, -5)
 gabor_prac.ori = 45
 gabor_prac.pos = (-5, -5)
 mask.draw()
