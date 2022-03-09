@@ -204,9 +204,11 @@ class simKeys:
         """
         keyList = [x for x in keyList if x != 'escape']
         if obs is not None:
-            self.name = obs.get_resp() # get response based on observer
+            self.ri = obs.get_resp() # get response based on observer
+            self.name = bin_to_pas(self.ri)
         else:
             self.name=np.random.choice(keyList)
+        
         self.rt = np.random.choice(np.linspace(rtRange[0], rtRange[1])/1000)
         
 class psy_observer:
@@ -234,8 +236,11 @@ class psy_observer:
         """
         pi = self.guess + (1 - self.guess - self.lapses) * stats.norm.cdf(self.xi, self.threshold, self.slope)
         ri = np.random.binomial(1, pi, 1)[0] # get 01 according to
-        if ri == 1:
-            ri = np.random.choice([2,3,4])
-        else:
-            ri = 1
-        return str(ri)
+        return ri
+
+def bin_to_pas(ri):
+    if ri == 1:
+        pas = np.random.choice([2,3,4])
+    else:
+        pas = 1
+    return str(pas)
