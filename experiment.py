@@ -289,25 +289,25 @@ Here we create the quest staircases with parameters. Each staircase will run for
 """
 
 obs = utils.psy_observer(0.5, 0.2, 0, 0) # init ideal observer for simulation
+fa_rate = 0.10
+lapse_rate = 0.01
 
-# TODO set better values for gamma/delta
+# TODO set better values for delta
 
 quest_50 = data.QuestHandler(0.5, 0.2, beta = 3.5,
-    pThreshold=0.5, gamma=0, delta = 0,
+    pThreshold = 0.5, gamma = lapse_rate, delta = fa_rate,
     minVal=0, maxVal=1,
     ntrials = round(nvalid/3))
 
 quest_70 = data.QuestHandler(0.5, 0.2, beta = 3.5,
-    pThreshold=0.7, gamma=0, delta = 0,
+    pThreshold = 0.60, gamma = lapse_rate, delta = fa_rate,
     minVal=0, maxVal=1,
     ntrials = round(nvalid/3))
 
 quest_80 = data.QuestHandler(0.5, 0.2, beta = 3.5,
-    pThreshold=0.85, gamma=0, delta = 0,
-    minVal=0, maxVal=1,
+    pThreshold = 0.80, gamma = lapse_rate, delta = fa_rate,
+    minVal = 0, maxVal = 1,
     ntrials = round(nvalid/3))
-
-# TODO icrease the quest 0.80 to 0.85
 
 quest_list = [quest_50, quest_70, quest_80] # list of QUEST in order to randomize the presentation. TODO check if better using the multistairhandler
 
