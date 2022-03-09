@@ -7,7 +7,6 @@ import itertools
 import random
 import pickle
 from scipy import stats
-from psychopy import visual, core
 
 def make_dirs():
     dirs = {
@@ -62,6 +61,7 @@ def deg2cm(angle, distance):
     return math.tan(math.radians(angle)) * distance  # trigonometry
 
 def getActualFrameRate(frames=1000):
+    from psychopy import visual, core
     """
     Measures the actual framerate of your monitor. It's not always as clean as
     you'd think. Prints various useful information.
@@ -138,9 +138,8 @@ def restore_objects(dict_to_restore):
     Returns:
         dict: A dictionary with restored objects
     """
-    filename = os.path.join(os.path.dirname(__file__), dict_to_restore)
-    
-    with open(filename, "rb") as backup_file:
+        
+    with open(dict_to_restore, "rb") as backup_file:
         restored_file = pickle.load(backup_file)
     return restored_file
 
@@ -158,10 +157,15 @@ def create_conditions(cond, prop_catch = 2/3):
     trial_list = [{key:value for value, key in zip(tup, cond)} for tup in tup_list]
     valid_list = [d for d in trial_list if d["trial_type"] == "valid"] # subset valid
     catch_list = [d for d in trial_list if d["trial_type"] == "catch"] # subset catch
-    # TODO set the same number of catch for each staircase
+    
     ncatch = int(len(catch_list)*prop_catch) # number of catch
     idx = random.sample(range(len(valid_list)), ncatch) # random index
     catch_list = [catch_list[i] for i in idx] # subset list
+    quest_catch = list(range(3))*int(ncatch/3) # create sequence of quest for catch
+    # assing the quest to each catch
+    for i in range(len(catch_list)):
+        catch_list[i]["quest"] = quest_catch[i]
+        
     return valid_list + catch_list, len(valid_list), ncatch # combine and return
 
 def str2bool(v):
