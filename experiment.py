@@ -4,7 +4,6 @@
 Modules
 """
 
-import csv
 from psychopy import core, visual, gui, monitors, event, data # psychopy stuff
 from psychopy.hardware import keyboard
 import numpy as np
@@ -15,8 +14,6 @@ import random
 """
 Functions
 """
-
-# TODO check if is correct to set the test ori in this way doubt about the clock/anticlock
 
 def set_ori(trials, diff):
     """
@@ -292,24 +289,24 @@ obs = utils.psy_observer(0.5, 0.2, 0, 0) # init ideal observer for simulation
 fa_rate = 0.10
 lapse_rate = 0.01
 
-# TODO set better values for delta
+# TODO set better values for other parameters
 
-quest_50 = data.QuestHandler(0.5, 0.2, beta = 3.5,
-    pThreshold = 0.5, gamma = lapse_rate, delta = fa_rate,
+quest0 = data.QuestHandler(0.5, 0.2, beta = 3.5,
+    pThreshold = 0.50, gamma = lapse_rate, delta = fa_rate,
     minVal=0, maxVal=1,
     ntrials = round(nvalid/3))
 
-quest_70 = data.QuestHandler(0.5, 0.2, beta = 3.5,
+quest1 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     pThreshold = 0.60, gamma = lapse_rate, delta = fa_rate,
     minVal=0, maxVal=1,
     ntrials = round(nvalid/3))
 
-quest_80 = data.QuestHandler(0.5, 0.2, beta = 3.5,
+quest2 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     pThreshold = 0.80, gamma = lapse_rate, delta = fa_rate,
     minVal = 0, maxVal = 1,
     ntrials = round(nvalid/3))
 
-quest_list = [quest_50, quest_70, quest_80] # list of QUEST in order to randomize the presentation. TODO check if better using the multistairhandler
+quest_list = [quest0, quest1, quest2] # list of QUEST in order to randomize the presentation. TODO check if better using the multistairhandler
 
 """
 Experiment
@@ -434,7 +431,7 @@ mask_prac.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for
 mask_prac.pos = (5, -5)
 gabor_prac.ori = 45
 gabor_prac.pos = (-5, -5)
-mask.draw()
+mask_prac.draw()
 gabor_prac.draw()
 
 ask(kb, text, INSTR_MASKING, ['space'], simulate=V['simulate'], pos = (0, 5))
