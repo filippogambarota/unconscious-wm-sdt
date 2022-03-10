@@ -162,9 +162,11 @@ def create_conditions(cond, prop_catch = 2/3):
     idx = random.sample(range(len(valid_list)), ncatch) # random index
     catch_list = [catch_list[i] for i in idx] # subset list
     quest_catch = list(range(3))*int(ncatch/3) # create sequence of quest for catch
+    cue_catch = ["left", "right"]*int(ncatch/2)
     # assing the quest to each catch
     for i in range(len(catch_list)):
         catch_list[i]["quest"] = quest_catch[i]
+        catch_list[i]["cue"] = cue_catch[i]
         
     return valid_list + catch_list, len(valid_list), ncatch # combine and return
 
