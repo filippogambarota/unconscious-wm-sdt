@@ -2,7 +2,7 @@ from psychopy import core, visual, gui, monitors, event # psychopy stuff
 from psychopy.hardware import keyboard
 import numpy as np
 import itertools
-import utils
+import modules.utils as utils
 import os
 
 # Monitor parameters
