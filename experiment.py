@@ -7,7 +7,7 @@ Modules
 from psychopy import core, visual, gui, monitors, event, data # psychopy stuff
 from psychopy.hardware import keyboard
 import numpy as np
-import utils
+import modules.utils as utils
 import time
 import random
 
@@ -33,6 +33,13 @@ def set_ori(trials, diff):
         else:
             trial['test_ori'] = ori
     return trials
+
+def get_random_ori(ORIS = None):
+    if ORIS is None:
+        ori = random.choice(list(range(0, 180)))
+    else:
+        ori = random.choice(ORIS)
+    return ori
 
 def ask(kb, obj = None, msg = None, keyList=None, quit = 'escape', before = '', after = '', hold = False, simulate = False, rtRange = [200, 2000], obs = None, pos = (0,0)):
     """
@@ -90,10 +97,11 @@ GABOR_SIZE = 3.4  # in degrees visual angle
 FIX_HEIGHT = 0.8  # Text height of fixation cross
 
 # Timings
-FRAMES_FIX = 30  # in frames. ~ 500 ms on 120 Hz
-FRAMES_STIM = 2  # in frames. ~ 33 ms on 120
-FRAMES_MASK = 21  # in frames. ~ 350 ms on 120 Hz
-FRAMES_TARGET_RESP = 60 # in frames ~1 s on 120 hz
+FRAMES_CUE = 30  # in frames. ~ 500 ms on 60 Hz
+FRAMES_FIX = 30  # in frames. ~ 500 ms on 60 Hz
+FRAMES_STIM = 2  # in frames. ~ 33 ms on 60
+FRAMES_MASK = 21  # in frames. ~ 350 ms on 60 Hz
+FRAMES_TARGET_RESP = 60 # in frames ~1 s on 60 hz
 ITI = 1
 
 # Condition parameterss
@@ -103,6 +111,8 @@ POSITIONS = 0
 ORIS = [15, 45, 75, 105, 135, 165] # orientations TODO check if other oris
 NTRIALS_BREAK = 50  # Number of trials between breaks
 NTRIALS_PRAC = 10 # number of practice trials
+CUE_SIDE = {"right":0, "left":180} # cue orientation
+stim_offset = 5 # offset from the center for gabor and masks in degree
 
 # Questions and messages
 MESSAGE_POS = [0, 0]  # [x, y]
@@ -233,6 +243,7 @@ cond = {
     "trial_type": ["valid", "catch"],
     "which_change": ["clock", "anti"],
     "trial": range(1, REPETITIONS + 1),
+    "cue": ["left", "right"],
     "quest": range(3),
     "pas": [''],
     "pas_rt": [0],
@@ -264,15 +275,28 @@ writer = utils.csv_writer(cond, V["subject"], dirs["csv"])
 OBJECTS
 """
 
+# Arrow for cue
+arrowVert = [(-0.25,0.05),(-0.25,-0.05),(0.15,-0.05),(0.15,-0.1),(0.25,0),(0.15,0.1),(0.15,0.05)] # vertices for the arrow https://github.com/psychopy/psychopy/blob/release/psychopy/demos/coder/stimuli/shapes.py
+
+arrow_up = visual.ShapeStim(win, vertices = arrowVert, fillColor= objects_color, lineColor= objects_color, pos = (0,0.3), units = "norm", size = 0.5)
+
+arrow_down = visual.ShapeStim(win, vertices = arrowVert, fillColor= objects_color, lineColor=objects_color, pos = (0,-0.3), units = "norm", size = 0.5)
+
 fix = visual.TextStim(win, '+', height=FIX_HEIGHT)  # Fixation cross is just the character "+". Units are inherited from Window when not explicitly specified.
 
 gabor_prac = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0))  # A gabor patch. Again, units are inherited.
 
-gabor_memory = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0))  # A gabor patch. Again, units are inherited.
+gabor_memory_left = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (-stim_offset, 0))  # A gabor patch. Again, units are inherited.
 
-gabor_test = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0), contrast = 1)  # A gabor patch. Again, units are inherited.
+gabor_memory_right = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (stim_offset, 0))  # A gabor patch. Again, units are inherited.
 
-mask = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=False, mask="circle", pos = (0, 0)) # mask for the backward masking. The texture is generated trial-by-trial
+gabor_test_left = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0), contrast = 1)  # A gabor patch. Again, units are inherited.
+
+gabor_test_right = visual.GratingStim(win, mask='gauss', sf = GABOR_SF, size = GABOR_SIZE, pos = (0, 0), contrast = 1)  # A gabor patch. Again, units are inherited.
+
+mask_left = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=False, mask="circle", pos = (-stim_offset, 0)) # mask for the backward masking. The texture is generated trial-by-trial
+
+mask_right = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=False, mask="circle", pos = (stim_offset, 0)) # mask for the backward masking. The texture is generated trial-by-trial
 
 mask_prac = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=False, mask="circle", pos = (0, 0)) # mask for the backward masking. The texture is generated trial-by-trial
 
@@ -317,7 +341,6 @@ def experiment(trials, ntrials = None, isPrac = False):
     """
     This function run the experiment or a subset of trials (for the practice). If the isPrac argument is True, a subset of random trials (ntrials) will be selected and used in the practice.
     """
-    
     if isPrac:
         prac_idx = random.sample(range(len(trials)), ntrials) # random index
         trials = [trials[i] for i in prac_idx] # select only practice trials
@@ -333,17 +356,48 @@ def experiment(trials, ntrials = None, isPrac = False):
         # Init trial
         trial = trials[i] # get current dictionary
         quest_trial = trial['quest'] # get index quest
+        mask_left.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for the mask
+        mask_right.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for the mask 
+        
+        # Cue
+        
+        arrow_up.ori = CUE_SIDE[trial["cue"]]
+        arrow_down.ori = CUE_SIDE[trial["cue"]]
         
         # Check if catch and set contrast to 0, else take the QUEST
         if trial["trial_type"] == "catch":
             contrast_trial = 0
+            target_left = mask_left
+            target_right = mask_right
         else:
+            target_left = gabor_memory_left
+            target_right = gabor_memory_right
             contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
         obs.xi = contrast_trial # add contrast to observer
-        gabor_memory.contrast = contrast_trial # assign contrast to memory
-        gabor_memory.ori = trial['memory_ori'] # assign ori to memory
-        gabor_test.ori = trial['test_ori'] # assign ori to test
-        mask.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for the mask 
+        
+        # Contrast
+        gabor_memory_left.contrast = contrast_trial # assign contrast to memory
+        gabor_memory_right.contrast = contrast_trial # assign contrast to memory
+        # test contrast is set to 1
+        
+        # TODO add the catch for the uncued side of memory. Check if the test was always mask-cued and not random(mask or ori)-cued
+        
+        if trial["cue"] == "left":
+            if not trial["trial_type"] == "catch":
+                # Memory
+                target_left.ori = trial['memory_ori'] # assign ori to memory
+                target_right.ori = get_random_ori(ORIS) # assign random ori to memory
+                # Test
+                gabor_test_left.ori = trial['test_ori'] # assign ori  to test
+                gabor_test_right.ori = get_random_ori(ORIS) # assign  randomori to test
+        else:
+            if not trial["trial_type"] == "catch":
+                # Memory
+                gabor_memory_right.ori = trial['memory_ori'] # assign ori to memory
+                gabor_memory_left.ori = get_random_ori(ORIS) # assign random ori to memory
+                # Test
+                gabor_test_right.ori = trial['test_ori'] # assign ori to test
+                gabor_test_left.ori = get_random_ori(ORIS) # assign random ori to test
         
         # -- STARTING TRIAL
         
@@ -352,14 +406,25 @@ def experiment(trials, ntrials = None, isPrac = False):
             fix.draw()
             win.flip()
             
+        # Cue
+        
+        for frame in range(FRAMES_CUE):
+            arrow_up.draw()
+            arrow_down.draw()
+            win.flip()
+            
+        # TODO adding jittering
+
         # Gabor
         for frame in range(FRAMES_STIM):
-            gabor_memory.draw()
+            target_left.draw()
+            target_right.draw()
             win.flip()
             
         # Mask
         for frame in range(FRAMES_MASK):
-            mask.draw()
+            mask_left.draw()
+            mask_right.draw()
             win.flip()
             
         # Retention
@@ -368,7 +433,9 @@ def experiment(trials, ntrials = None, isPrac = False):
             win.flip()
             
         # Test
-        gabor_test.draw() # drawing gabor for holding
+        gabor_test_left.draw() # drawing gabor for holding
+        gabor_test_right.draw() # drawing gabor for holding
+        
         test_resp, test_rt = ask(kb, keyList = list(TEST_RESP.keys()), hold = True, simulate=V['simulate'])
         
         # PAS
