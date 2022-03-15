@@ -109,7 +109,7 @@ ITI = 1 # in seconds, use core.wait
 
 # Condition parameterss
 PRAC_TRIALS = 5 # number of practice trials
-REPETITIONS = 7  # number of trials per condition
+REPETITIONS = 5  # number of trials per condition
 POSITIONS = 0
 ORIS = [15, 45, 75, 105, 135, 165] # orientations TODO check if other oris
 NTRIALS_BREAK = 50  # Number of trials between breaks
@@ -152,7 +152,7 @@ INSTR_MASKING = """
 """
 
 INSTR_MEMORY = """
-    Il tuo compito è quello di focalizzarti sulla Gabor e sul suo orientamento e cercare di mantenerla in memoria. 
+    Il tuo compito è quello di focalizzarti sulla prima Gabor e sul suo orientamento e cercare di mantenerla in memoria. 
     
     Anche se non hai visto chiaramente la Gabor non ti preoccupare, cerca di mantenere in memoria comunque.
 """
