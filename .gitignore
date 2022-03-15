@@ -58,3 +58,6 @@ rsconnect/
 README.html
 
 local-files/*
+
+*.Ink
+*.lnk
