@@ -56,3 +56,5 @@ po/*~
 rsconnect/
 
 README.html
+
+local-files/*
