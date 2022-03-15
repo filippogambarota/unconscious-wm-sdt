@@ -31,7 +31,7 @@ test_key <- c("change" = "f", "same" = "j") # keys for the change detection task
 
 # Loading Data
 
-dat <- read.csv("data/csv/1_(2022-03-08_17-22-51).csv")
+dat <- read.csv("data/csv/10_(2022-03-10_19-08-49).csv")
 
 # Check total trials valid and catch
 
