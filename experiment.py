@@ -69,8 +69,19 @@ esc_key = 'escape'
 def quit():
     """Close everything and exit nicely (ending the experiment)
     """
+    
+    objects_to_save = {
+        "subjects": V['subject'],
+        "trials": trials,
+        "quest_list": quest_list,
+        "duration_experiment": time.time() - start_experiment # timer for the experiment
+    }
+    
+    utils.save_objects(dirs["session"], V["subject"], objects_to_save)
+    
     win.close()
     core.quit()
+    
 
 # call globalKeys so that whenever user presses escape, quit function called
 event.globalKeys.add(key=esc_key, func=quit)
@@ -81,8 +92,8 @@ SET VARIABLES
 
 # Monitor parameters
 MON_DISTANCE = 60  # Distance between subject's eyes and monitor
-MON_WIDTH = 51  # Width of your monitor in cm
-MON_SIZE = [1920, 1080]  # Pixel-dimensions of your monitor
+MON_WIDTH = 32.5  # Width of your monitor in cm
+MON_SIZE = [1024, 768]  # Pixel-dimensions of your monitor
 
 # Stimulus parameters
 GABOR_SF = 3.7  # 4 cycles per degree visual angle
@@ -90,11 +101,11 @@ GABOR_SIZE = 3.4  # in degrees visual angle
 FIX_HEIGHT = 0.8  # Text height of fixation cross
 
 # Timings
-FRAMES_FIX = 30  # in frames. ~ 500 ms on 120 Hz
-FRAMES_STIM = 2  # in frames. ~ 33 ms on 120
-FRAMES_MASK = 21  # in frames. ~ 350 ms on 120 Hz
-FRAMES_TARGET_RESP = 60 # in frames ~1 s on 120 hz
-ITI = 1
+FRAMES_FIX = 43  # in frames. ~ 500 ms on 85 Hz
+FRAMES_STIM = 3  # in frames. ~ 33 ms on 85 Hz
+FRAMES_MASK = 30  # in frames. ~ 350 ms on 85 Hz
+FRAMES_TARGET_RESP = 85 # in frames ~1 s on 120 hz
+ITI = 1 # in seconds, use core.wait
 
 # Condition parameterss
 PRAC_TRIALS = 5 # number of practice trials
@@ -240,7 +251,9 @@ cond = {
     "test_key": [''],
     "test": [''],
     "test_rt": [0],
-    "contrast": [0]
+    "contrast": [0],
+    "target_dur": [0],
+    "mask_dur": [0]
 }
 
 trials, nvalid, ncatch = utils.create_conditions(cond, prop_catch=2/3) # create the combinations. prop_catch is the proportions of catch trials to create
@@ -280,6 +293,10 @@ text = visual.TextStim(win, pos=MESSAGE_POS, height=MESSAGE_HEIGHT, wrapWidth=30
 
 kb = keyboard.Keyboard() # init the keyboard
 
+# Timing
+
+clock_stim = core.Clock() # clock for the target
+
 """
 Quest
 Here we create the quest staircases with parameters. Each staircase will run for ntrials/nstaircase trials
@@ -311,7 +328,6 @@ quest_list = [quest0, quest1, quest2] # list of QUEST in order to randomize the 
 """
 Experiment
 """
-start_experiment = time.time() # timer for the overall experiment
 
 def experiment(trials, ntrials = None, isPrac = False):
     """
@@ -339,6 +355,7 @@ def experiment(trials, ntrials = None, isPrac = False):
             contrast_trial = 0
         else:
             contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
+        
         obs.xi = contrast_trial # add contrast to observer
         gabor_memory.contrast = contrast_trial # assign contrast to memory
         gabor_memory.ori = trial['memory_ori'] # assign ori to memory
@@ -351,22 +368,28 @@ def experiment(trials, ntrials = None, isPrac = False):
         for frame in range(FRAMES_FIX):
             fix.draw()
             win.flip()
-            
+        
         # Gabor
+        clock_stim.reset()
         for frame in range(FRAMES_STIM):
             gabor_memory.draw()
             win.flip()
-            
+        target_dur = clock_stim.getTime()    
+    
         # Mask
+        clock_stim.reset()
         for frame in range(FRAMES_MASK):
             mask.draw()
             win.flip()
-            
+        mask_dur = clock_stim.getTime()     
+        
         # Retention
+        clock_stim.reset()
         for frame in range(FRAMES_TARGET_RESP):
             fix.draw()
             win.flip()
-            
+        retention_dur = clock_stim.getTime()
+        
         # Test
         gabor_test.draw() # drawing gabor for holding
         test_resp, test_rt = ask(kb, keyList = list(TEST_RESP.keys()), hold = True, simulate=V['simulate'])
@@ -386,7 +409,8 @@ def experiment(trials, ntrials = None, isPrac = False):
         if trial[ "trial_type"] == "valid": # update only if valid
             quest_list[quest_trial].addResponse(vis_resp) # updating
         
-        # Update Dict
+        #-- Update Dict
+        
         trial['contrast'] = contrast_trial
         trial['test_key'] = test_resp
         trial['test'] = TEST_RESP[test_resp]
@@ -395,16 +419,20 @@ def experiment(trials, ntrials = None, isPrac = False):
         trial['pas_rt'] = pas_rt
         trial['vis'] = vis_resp
         trial['ntrial'] = i + 1 # setting the correct trial number
+        # timing
+        trial['target_dur'] = target_dur
+        trial['mask_dur'] = mask_dur
+        trial['retention_dur'] = retention_dur
 
         # Saving Data
         if not isPrac:
             writer.write(trial)
 
-duration_experiment = time.time() - start_experiment # timer for the experiment
-
 """
 Actual Experiment Running
 """
+
+start_experiment = time.time() # timer for the overall experiment
 
 # Welcome
 ask(kb, text, INSTR_WELCOME, ['space'], simulate=V['simulate'])
@@ -456,6 +484,8 @@ experiment(trials)
 
 # END
 ask(kb, text, END_EXPERIMENT, ['space'], simulate=V['simulate'])
+
+duration_experiment = time.time() - start_experiment # timer for the experiment
 
 # Backup Data
 
