@@ -15,6 +15,11 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+git_path = "F:\Filippo Gambarota\git\git-cmd.exe"
+
+# activating git
+#subprocess.call([git_path])
+
 # pulling remote
 subprocess.call(["git", "pull"])
  
