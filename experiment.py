@@ -136,7 +136,7 @@ INSTR_WELCOME = """
 """
 
 INSTR_GENERAL = """
-    In questo esperimento vedrai una croce di fissazione, seguita da uno stimolo visivo presentato molto velocemente che dovrai cercare di memorizzare. Dopo un breve intervallo (circa 1 secondo) comparirà un altro stimolo visivo. Il tuo compito è confrontare il primo stimolo con il secondo e poi riportare la tua esperienza visiva del primo stimolo.
+    In questo esperimento vedrai una croce di fissazione, seguita da uno stimolo visivo presentato molto velocemente sempre al centro che dovrai cercare di memorizzare. Dopo un breve intervallo (circa 1 secondo) comparirà un altro stimolo visivo. Il tuo compito è confrontare il primo stimolo con il secondo e poi riportare la tua esperienza visiva del primo stimolo.
     
     Premi la barra spaziatrice per continuare le istruzioni
 """
@@ -151,20 +151,15 @@ INSTR_MASKING = """
     Essendo presentata velocemente, alcune volte sarà più difficile vederla e altre volte non vedrai proprio niente. Non ti preoccupare è totalmente normale.
 """
 
-INSTR_MEMORY = """
-    Il tuo compito è quello di focalizzarti sulla prima Gabor e sul suo orientamento e cercare di mantenerla in memoria. 
+# TODO counterbalance between f and j
+INSTR_MEMORY_PROBE = """
+    Il tuo compito è quello di focalizzarti sulla prima Gabor e sul suo orientamento e cercare di mantenerla in memoria. Anche se non hai visto chiaramente la Gabor non ti preoccupare, cerca di mantenerla in memoria comunque.
     
-    Anche se non hai visto chiaramente la Gabor non ti preoccupare, cerca di mantenere in memoria comunque.
-"""
-
-INSTR_PROBE = """
-    Dopo un breve intervallo, comparirà sempre al centro un'altra Gabor che potrà avere un orientamento UGUALE o DIVERSO rispetto a quello che hai visto in precedenza. Il tuo compito è rispondere più accuratamente possibile se l'orientamento è uguale o diverso. 
-    Se non hai visto la Gabor non ti preoccupare, tenta comunque di dare la risposta, anche se dovessi rispondere casualmente.
+    Dopo un breve intervallo, comparirà sempre al centro un'altra Gabor che potrà avere un orientamento UGUALE o DIVERSO rispetto a quello che hai visto in precedenza. Il tuo compito è rispondere più accuratamente possibile se l'orientamento è uguale o diverso. Se non hai visto la Gabor non ti preoccupare, tenta comunque di dare la risposta, anche se dovessi rispondere casualmente.
     
     Premi "F" se l'orientamento è UGUALE
     Premi "J" se l'orientamento è DIVERSO
 """
-# TODO check the pas translation
 
 INSTR_PAS = """
     Infine ti sarà chiesto di riportare la tua ESPERIENZA VISIVA della prima Gabor (quella presentata velocemente). Ricorda che in questa domanda non ci sono risposte giuste o sbagliate. Siamo solo interessati a comprendere la tua esperienza il più accuratamente possibile.
@@ -172,7 +167,7 @@ INSTR_PAS = """
     Puoi usare queste opzioni di risposta:
     
     1 = Non ho visto nessuno stimolo
-    2 = Ho la sensazione di aver visto uno stimolo
+    2 = Ho la sensazione di aver visto lo stimolo
     3 = Ho visto abbastanza chiaramente lo stimolo
     4 = Ho visto chiaramente lo stimolo
 """
@@ -193,10 +188,10 @@ PRAC_INSTRUCTIONS = """
 """
     
 PAS_RESPONSE = """
-1 = Non ho visto lo stimolo
-2 = Ho la sensazione di aver visto uno stimolo
-3 = Ho visto abbastanza chiaramente lo stimolo
-4 = Ho visto chiaramente lo stimolo
+    1 = Non ho visto nessuno stimolo
+    2 = Ho la sensazione di aver visto lo stimolo
+    3 = Ho visto abbastanza chiaramente lo stimolo
+    4 = Ho visto chiaramente lo stimolo
 """
 
 END_EXPERIMENT = """
@@ -206,9 +201,9 @@ END_EXPERIMENT = """
 """
 
 TXT_BREAK = """
-Puoi prenderti una pausa!
+    Puoi prenderti una pausa!
 
-Premi la barra spaziatrice per continuare l'esperimento!
+    Premi la barra spaziatrice per continuare l'esperimento!
 """
 
 print('the physical diameter of the gabor patch should be', utils.deg2cm(GABOR_SIZE, MON_DISTANCE), 'cm')
@@ -252,11 +247,13 @@ cond = {
     "test": [''],
     "test_rt": [0],
     "contrast": [0],
+    "fix_dur": [0],
     "target_dur": [0],
-    "mask_dur": [0]
+    "mask_dur": [0],
+    "trial_dur": [0]
 }
 
-trials, nvalid, ncatch = utils.create_conditions(cond, prop_catch=2/3) # create the combinations. prop_catch is the proportions of catch trials to create
+trials, nvalid, ncatch = utils.create_conditions(cond, prop_catch=1/3) # create the combinations. prop_catch is the proportions of catch trials to create
 trials = random.sample(trials, len(trials)) # shuffling order
 trials = set_ori(trials, diff = 50) # add the test orientations
 
@@ -296,6 +293,7 @@ kb = keyboard.Keyboard() # init the keyboard
 # Timing
 
 clock_stim = core.Clock() # clock for the target
+clock_trial = core.Clock() # clock for the trial
 
 """
 Quest
@@ -303,7 +301,7 @@ Here we create the quest staircases with parameters. Each staircase will run for
 """
 
 obs = utils.psy_observer(0.5, 0.2, 0, 0) # init ideal observer for simulation
-fa_rate = 0.10
+fa_rate = 0 # TODO check fa value
 lapse_rate = 0.01
 
 # TODO set better values for other parameters
@@ -314,7 +312,7 @@ quest0 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     ntrials = round(nvalid/3))
 
 quest1 = data.QuestHandler(0.5, 0.2, beta = 3.5,
-    pThreshold = 0.60, gamma = lapse_rate, delta = fa_rate,
+    pThreshold = 0.65, gamma = lapse_rate, delta = fa_rate,
     minVal=0, maxVal=1,
     ntrials = round(nvalid/3))
 
@@ -363,11 +361,14 @@ def experiment(trials, ntrials = None, isPrac = False):
         mask.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for the mask 
         
         # -- STARTING TRIAL
+        clock_trial.reset()
         
         # Fixation
+        clock_stim.reset()
         for frame in range(FRAMES_FIX):
             fix.draw()
             win.flip()
+        fix_dur = clock_stim.getTime() 
         
         # Gabor
         clock_stim.reset()
@@ -401,6 +402,8 @@ def experiment(trials, ntrials = None, isPrac = False):
         win.flip() # blank screen
         core.wait(ITI)
         
+        trial_dur = clock_trial.getTime()
+        
         # --- END TRIAL
         
         # Update QUEST
@@ -423,6 +426,8 @@ def experiment(trials, ntrials = None, isPrac = False):
         trial['target_dur'] = target_dur
         trial['mask_dur'] = mask_dur
         trial['retention_dur'] = retention_dur
+        trial['fix_dur'] = fix_dur
+        trial['trial_dur'] = trial_dur
 
         # Saving Data
         if not isPrac:
@@ -465,7 +470,7 @@ gabor_prac.draw()
 ask(kb, text, INSTR_MASKING, ['space'], simulate=V['simulate'], pos = (0, 5))
 
 # Probe
-ask(kb, text, INSTR_PROBE, ['space'], simulate=V['simulate'])
+ask(kb, text, INSTR_MEMORY_PROBE, ['space'], simulate=V['simulate'])
 
 # PAS
 ask(kb, text, INSTR_PAS, ['space'], simulate=V['simulate'])
