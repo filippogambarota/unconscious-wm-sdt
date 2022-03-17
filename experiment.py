@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 """
 Modules
@@ -108,12 +108,11 @@ FRAMES_TARGET_RESP = 85 # in frames ~1 s on 120 hz
 ITI = 1 # in seconds, use core.wait
 
 # Condition parameterss
-PRAC_TRIALS = 5 # number of practice trials
 REPETITIONS = 5  # number of trials per condition
 POSITIONS = 0
 ORIS = [15, 45, 75, 105, 135, 165] # orientations TODO check if other oris
 NTRIALS_BREAK = 50  # Number of trials between breaks
-NTRIALS_PRAC = 10 # number of practice trials
+NTRIALS_PRAC = 5 # number of practice trials
 
 # Questions and messages
 MESSAGE_POS = [0, 0]  # [x, y]
@@ -250,6 +249,7 @@ cond = {
     "fix_dur": [0],
     "target_dur": [0],
     "mask_dur": [0],
+    "retention_dur": [0],
     "trial_dur": [0]
 }
 
@@ -476,15 +476,23 @@ ask(kb, text, INSTR_MEMORY_PROBE, ['space'], simulate=V['simulate'])
 ask(kb, text, INSTR_PAS, ['space'], simulate=V['simulate'])
 
 # Practice
-prac_resp, *_ = ask(kb, text, PRAC_INSTRUCTIONS, ['space', 'p'], simulate=V['simulate'])
+ask(kb, text, PRAC_INSTRUCTIONS, ['space'], simulate=V['simulate'])
 
 experiment(trials, ntrials = NTRIALS_PRAC, isPrac=True)
 
-if prac_resp == "p": # check if running prac again
-    experiment(trials, ntrials = NTRIALS_PRAC, isPrac=True)
+# checking for more practice
+
+again_prac = True
+
+while again_prac:
+    prac_key, prac_key_rt = ask(kb, text, INSTR_START_EXPERIMENT, ['space', 'p'], simulate=V['simulate'])
+    if prac_key == "p":
+        experiment(trials, ntrials = NTRIALS_PRAC, isPrac=True)
+    else:
+        again_prac = False
+    
 
 # Experiment
-ask(kb, text, INSTR_START_EXPERIMENT, ['space'], simulate=V['simulate'])
 experiment(trials)
 
 # END
