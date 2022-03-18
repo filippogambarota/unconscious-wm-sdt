@@ -122,7 +122,7 @@ MESSAGE_HEIGHT = 1  # Height of the text, still in degrees visual angle
 KEYS_QUIT = ['escape']  # Keys that quits the experiment
 PAS_RESP = {'1': 'pas1', '2': 'pas2', '3':'pas3', '4': 'pas4'} # pas keys
 VIS_RESP = {'pas1': 0, 'pas2': 1, 'pas3': 1, 'pas4': 1} # keys for staircase from PAS RESP
-TEST_RESP = {'f': 'change', 'j': 'same'} # keys for the change detection task
+TEST_RESP = {'f': 'same', 'j': 'change'} # keys for the change detection task
 
 """
 Text Messages
