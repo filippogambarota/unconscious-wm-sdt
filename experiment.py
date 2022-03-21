@@ -349,10 +349,13 @@ def experiment(trials, ntrials = None, isPrac = False):
         quest_trial = trial['quest'] # get index quest
         
         # Check if catch and set contrast to 0, else take the QUEST
-        if trial["trial_type"] == "catch":
-            contrast_trial = 0
+        if isPrac:
+            contrast_trial = random.uniform(0, 1)
         else:
-            contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
+            if trial["trial_type"] == "catch":
+                contrast_trial = 0
+            else:
+                contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
         
         obs.xi = contrast_trial # add contrast to observer
         gabor_memory.contrast = contrast_trial # assign contrast to memory
@@ -409,7 +412,7 @@ def experiment(trials, ntrials = None, isPrac = False):
         # Update QUEST
         vis_resp = VIS_RESP[PAS_RESP[str(pas_resp)]] # coverting to 0-1
         
-        if trial[ "trial_type"] == "valid": # update only if valid
+        if trial[ "trial_type"] == "valid" and not isPrac: # update only if valid and not prac
             quest_list[quest_trial].addResponse(vis_resp) # updating
         
         #-- Update Dict
