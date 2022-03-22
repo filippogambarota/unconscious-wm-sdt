@@ -227,14 +227,16 @@ class psy_observer:
         self.slope = slope
         self.guess = guess
         self.lapses = lapses
-        self.xi = 0
-    def get_resp(self):
+    def get_resp(self, xi = None):
         """_Generate a PAS response as string. 1 = 0 and 2,3,4 = 1_
 
         Returns:
             _string_: _The PAS response for that trial_
         """
-        pi = self.guess + (1 - self.guess - self.lapses) * stats.norm.cdf(self.xi, self.threshold, self.slope)
+        if xi is not None:
+            pi = self.guess + (1 - self.guess - self.lapses) * stats.norm.cdf(xi, self.threshold, self.slope)
+        else:
+            pi = self.guess + (1 - self.guess - self.lapses) * stats.norm.cdf(self.xi, self.threshold, self.slope)
         ri = np.random.binomial(1, pi, 1)[0] # get 01 according to
         return ri
 
