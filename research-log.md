@@ -20,3 +20,19 @@ Soluzioni possibili:
     - meno contrasto maschera
 
 In generale la durata del compito è al limite del sopportabile. Se riesco dovrei ridurre ma sicuramente non posso aumentare.
+
+## 22/03/2022
+
+Il problema principale sono i falsi allarmi. I falsi allarmi creano un bias nella stima della soglia (Grassi, 2013). In particolare, più i fa sono alti e più lo stimo a soglia (e.g. 50%) è vicino ai falsi allarmi (stimolo assente) e quindi estremamente basso.
+
+Chiaramente per avere una proporzione omogenea di **visible/non visible** devo presentare uno stimolo al 50% e questo lo rende estremamente poco visibile. inoltre la stima della soglia mi sembra minore che a tel-aviv, probabilmente per la lateralizzazione
+
+Soluzioni possibili:
+
+- inserire catch trials nella quest
+- alzare la soglia al 50% a prescindere (e togliere una condizione)
+- stimare il fa rate (in parte risolto se li metto nella quest)
+
+### Check
+
+Effettivamente a **contrasto 0** non c'è proprio nulla. Il contrasto stimato per il soggetto 1 a pas 1 è effettivamente bassissimo.
