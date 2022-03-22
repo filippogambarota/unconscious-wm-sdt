@@ -143,7 +143,7 @@ def restore_objects(dict_to_restore):
         restored_file = pickle.load(backup_file)
     return restored_file
 
-def create_conditions(cond, prop_catch = 2/3):
+def create_conditions(cond, ncatch = None, prop_catch = 2/3):
     """Cartesian product of all dictionary values creating a list of dictionaries as trials for the main experiment.
 
     Args:
@@ -158,7 +158,8 @@ def create_conditions(cond, prop_catch = 2/3):
     valid_list = [d for d in trial_list if d["trial_type"] == "valid"] # subset valid
     catch_list = [d for d in trial_list if d["trial_type"] == "catch"] # subset catch
     
-    ncatch = int(len(catch_list)*prop_catch) # number of catch
+    if ncatch is None:
+        ncatch = int(len(catch_list)*prop_catch) # number of catch
     idx = random.sample(range(len(valid_list)), ncatch) # random index
     catch_list = [catch_list[i] for i in idx] # subset list
     quest_catch = list(range(3))*int(ncatch/3) # create sequence of quest for catch
