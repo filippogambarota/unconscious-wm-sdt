@@ -108,11 +108,13 @@ FRAMES_TARGET_RESP = 85 # in frames ~1 s on 120 hz
 ITI = 1 # in seconds, use core.wait
 
 # Condition parameterss
-REPETITIONS = 5  # number of trials per condition
+REPETITIONS = 7  # number of trials per condition
+NCATCH = 100 # number of catch trials
 POSITIONS = 0
 ORIS = [15, 45, 75, 105, 135, 165] # orientations TODO check if other oris
 NTRIALS_BREAK = 50  # Number of trials between breaks
 NTRIALS_PRAC = 5 # number of practice trials
+NCATCH_FEEDBACK = 120
 
 # Questions and messages
 MESSAGE_POS = [0, 0]  # [x, y]
@@ -205,6 +207,18 @@ TXT_BREAK = """
     Premi la barra spaziatrice per continuare l'esperimento!
 """
 
+FEEDBACK_POSITIVE = """
+    Ottimo! in questo trial non c'era la Gabor e hai risposto {}
+
+    Premi la barra spaziatrice per continuare
+"""
+
+FEEDBACK_NEGATIVE = """
+    Attenzione! in questo trial non c'era la Gabor e hai risposto {}
+
+    Premi la barra spaziatrice per continuare
+"""
+
 print('the physical diameter of the gabor patch should be', utils.deg2cm(GABOR_SIZE, MON_DISTANCE), 'cm')
 print('the physical size of the fixation cross should be', utils.deg2cm(FIX_HEIGHT, MON_DISTANCE), 'cm')
 
@@ -238,7 +252,7 @@ cond = {
     "trial_type": ["valid", "catch"],
     "which_change": ["clock", "anti"],
     "trial": range(1, REPETITIONS + 1),
-    "quest": range(3),
+    "quest": range(2),
     "pas": [''],
     "pas_rt": [0],
     "vis": [0],
@@ -253,9 +267,13 @@ cond = {
     "trial_dur": [0]
 }
 
-trials, nvalid, ncatch = utils.create_conditions(cond, prop_catch=1/3) # create the combinations. prop_catch is the proportions of catch trials to create
+trials, nvalid, ncatch = utils.create_conditions(cond, ncatch=NCATCH) # create the combinations. prop_catch is the proportions of catch trials to create
 trials = random.sample(trials, len(trials)) # shuffling order
 trials = set_ori(trials, diff = 50) # add the test orientations
+
+catch_idx = [i for i, x in enumerate(trials) if x['trial_type'] == "catch"] # index for catch trials
+valid_idx = [i for i, x in enumerate(trials) if x['trial_type'] == "valid"] # index for catch trials
+feedback_trials = random.sample(catch_idx, NCATCH_FEEDBACK)
 
 # Create psychopy window
 background_color = [0,0,0] # ~ grey
@@ -302,26 +320,21 @@ Here we create the quest staircases with parameters. Each staircase will run for
 
 obs = utils.psy_observer(0.5, 0.2, 0, 0) # init ideal observer for simulation
 fa_rate = 0 # TODO check fa value
-lapse_rate = 0.01
+lapse_rate = 0.05
 
 # TODO set better values for other parameters
 
 quest0 = data.QuestHandler(0.5, 0.2, beta = 3.5,
     pThreshold = 0.50, gamma = fa_rate, delta = lapse_rate,
     minVal=0, maxVal=1,
-    ntrials = round(nvalid/3))
+    ntrials = round(nvalid/2))
 
-quest1 = data.QuestHandler(0.5, 0.2, beta = 3.5,
+quest1 = data.QuestHandler(0.65, 0.2, beta = 3.5,
     pThreshold = 0.65, gamma = fa_rate, delta = lapse_rate,
     minVal=0, maxVal=1,
-    ntrials = round(nvalid/3))
+    ntrials = round(nvalid/2))
 
-quest2 = data.QuestHandler(0.5, 0.2, beta = 3.5,
-    pThreshold = 0.80, gamma = fa_rate, delta = lapse_rate,
-    minVal = 0, maxVal = 1,
-    ntrials = round(nvalid/3))
-
-quest_list = [quest0, quest1, quest2] # list of QUEST in order to randomize the presentation. TODO check if better using the multistairhandler
+quest_list = [quest0, quest1] # list of QUEST in order to randomize the presentation. TODO check if better using the multistairhandler
 
 """
 Experiment
@@ -349,13 +362,13 @@ def experiment(trials, ntrials = None, isPrac = False):
         quest_trial = trial['quest'] # get index quest
         
         # Check if catch and set contrast to 0, else take the QUEST
-        if isPrac:
-            contrast_trial = random.uniform(0, 1)
-        else:
-            if trial["trial_type"] == "catch":
-                contrast_trial = 0
+        if trial["trial_type"] == "valid":
+            if isPrac:
+                contrast_trial = random.uniform(0.5, 1) # random prac with high contrast
             else:
                 contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
+        else:
+            contrast_trial = 0
         
         obs.xi = contrast_trial # add contrast to observer
         gabor_memory.contrast = contrast_trial # assign contrast to memory
@@ -401,6 +414,13 @@ def experiment(trials, ntrials = None, isPrac = False):
         # PAS
         pas_resp, pas_rt = ask(kb, text, PAS_RESPONSE, list(PAS_RESP.keys()), simulate=V['simulate'], obs=obs) # pas
         
+        if i in feedback_trials and not isPrac: 
+            if pas_resp == "1":
+                FEEDBACK = FEEDBACK_POSITIVE.format(pas_resp)
+            else:
+                FEEDBACK = FEEDBACK_NEGATIVE.format(pas_resp)
+            ask(kb, text, FEEDBACK, keyList = ["space"], simulate=V['simulate'])
+        quest2
         # ITI
         win.flip() # blank screen
         core.wait(ITI)
