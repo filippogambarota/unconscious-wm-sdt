@@ -1,5 +1,5 @@
 old/*
-data/*
+#data/*
 !*/.gitkeep
 *.code-workspace
 __pycache__/
