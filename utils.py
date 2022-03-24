@@ -8,11 +8,16 @@ import random
 import pickle
 from scipy import stats
 
-def make_dirs():
+def get_dirs(simulate = False):
+    if simulate:
+        data_folder = "data_sim"
+    else:
+        data_folder = "data"
+    
     dirs = {
-        "csv": os.path.join(os.path.curdir, "data", "csv"),
-        "session": os.path.join(os.path.curdir, "data", "session")
-    }
+            "csv": os.path.join(os.path.curdir, data_folder, "csv"),
+            "session": os.path.join(os.path.curdir, data_folder, "session")
+        }
     return dirs
 
 # TODO check if the with open statment is too slow
