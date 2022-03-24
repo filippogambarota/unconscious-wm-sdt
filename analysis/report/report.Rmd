@@ -1,0 +1,211 @@
+---
+title: "Report"
+author: "Filippo Gambarota"
+date: '2022-03-22'
+output: 
+  bookdown::pdf_document2:
+    toc: true
+  bookdown::html_document2:
+    self_contained: true
+    toc: true
+    toc_float: true
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.align = "center",
+                      fig.retina = 2,
+                      dpi = 300)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+library(kableExtra)
+library(ggeffects)
+```
+
+```{r functions}
+qtheme <- function(){
+    theme_minimal(base_size = 12)
+}
+
+qtab <- function(data){
+  data %>% 
+    kable(digits = 3) %>% 
+    kable_styling(bootstrap_options = c("striped", "condensed"),
+                  full_width = FALSE)
+}
+
+get_threshold <- function(fit){
+  -(coef(fit)[1]/coef(fit)[2])
+}
+
+get_slope <- function(fit){
+  1/coef(fit)[2]
+}
+```
+
+```{r data}
+file <- "local-files/1_(2022-03-18_09-31-23).csv"
+dat <- read_csv(here(file))
+```
+
+```{r pre-processing}
+
+if (dat$subject[1] == "1") {
+  # reverse scores
+  dat$test <- ifelse(dat$test == "same", "change", "same")
+}
+
+dat <- dat %>% 
+  mutate(acc = ifelse(type == test, 1, 0),
+         pasf = factor(pas),
+         questf = factor(quest),
+         is_signal = factor(ifelse(trial_type == "valid", 1, 0)),
+         say_signal = factor(ifelse(pas < 2, 0, 1)))
+```
+
+
+# Report
+
+## QUEST overview
+
+This plot represent the overall QUESTs across the experiment for valid trials only. The red dot are the contrast 0 (this is an index on how low is the contrast across trials).
+
+```{r}
+dat %>% 
+  group_by(quest) %>% 
+  mutate(trialq = 1:n(),
+         contr = ifelse(contrast == 0, 0, 1)) %>%
+  ungroup() %>% 
+  filter(trial_type == "valid") %>% 
+  ggplot(aes(x = trialq, y = contrast, color = factor(contr))) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~quest) +
+  qtheme()
+```
+
+This table is the average contrast with variability for each QUEST:
+
+```{r}
+dat %>% 
+  filter(trial_type == "valid") %>% 
+  group_by(quest) %>% 
+  summarise(mean = mean(contrast),
+         sd = sd(contrast),
+         min = min(contrast),
+         first_quantile = quantile(contrast, 0.25),
+         median = median(contrast),
+         third_quantile = quantile(contrast, 0.75),
+         max = max(contrast)) %>% 
+  qtab()
+```
+
+This is the PAS distribution for QUEST and trial type (catch and valid):
+
+```{r}
+dat %>% 
+  count(pas, trial_type, quest) %>% 
+  ggplot(aes(x = pas, y = n)) +
+  geom_col(color = "black", fill = "lightblue") +
+  facet_grid(quest~trial_type) +
+  qtheme()
+```
+
+This is the table for PAS and QUEST contrast with variability:
+
+```{r}
+dat %>% 
+  group_by(quest, pas) %>% 
+  summarise(mean = mean(contrast),
+            sd = sd(contrast),
+            ntrials = n(),
+            min = min(contrast),
+            first_quantile = quantile(contrast, 0.25),
+            median = median(contrast),
+            third_quantile = quantile(contrast, 0.75),
+            max = max(contrast)) %>% 
+  qtab()
+```
+
+This table is the accuracy as a function of PAS and QUEST
+
+```{r}
+dat %>% 
+  group_by(quest, pas) %>% 
+  summarise(acc = mean(acc),
+            ntrials = n(),
+            contrast = mean(contrast)) %>% 
+  qtab()
+```
+
+This is the relationship between accuracy and contrast:
+
+```{r}
+fit_con <- glm(acc ~ contrast, 
+               data = dat %>% filter(trial_type == "valid"),
+               family = binomial(link = "logit"))
+
+plot(ggeffect(fit_con))
+```
+
+This is the signal detection analysis. Negative criterion value represent a tendency toward responding "yes" (liberal criterion)
+
+```{r}
+dat %>% 
+  mutate(sdt = case_when(is_signal == 1 & say_signal == 1 ~ "hit",
+                         is_signal == 1 & say_signal == 0 ~ "miss",
+                         is_signal == 0 & say_signal == 1 ~ "fa",
+                         is_signal == 0 & say_signal == 0 ~ "cr")) %>% 
+  count(sdt, quest) %>% 
+  pivot_wider(names_from = sdt, values_from = n) %>% 
+  mutate(fa_rate = fa/(fa + cr),
+         hit_rate = hit/(hit + miss),
+         dprime = qnorm(hit_rate) - qnorm(fa_rate),
+         crit = -((qnorm(hit_rate) + qnorm(fa_rate))/2)) %>% 
+  qtab()
+```
+
+This is the psychometric function considering PAS 1 as 0 and PAS 234 as 1.
+
+```{r}
+fit_pas1_234 <- glm(vis ~ contrast,
+           data = dat %>% filter(trial_type == "valid"),
+           family = binomial(link = "logit"))
+
+newdata <- data.frame(contrast = seq(0,1,0.001))
+
+newdata$p <- predict(fit_pas1_234, newdata = newdata, type = "response")
+
+ggplot(newdata) +
+  geom_line(aes(x = contrast, y = p)) +
+  ylim(c(0,1)) +
+  qtheme()
+```
+
+The estimated 50% threshold is `r get_threshold(fit_pas1_234) %>% round(3)` and the slope is `r get_slope(fit_pas1_234) %>% round(3)`
+ 
+This is the psychometric function considering PAS 12 as 0 and PAS 34 as 1. I'm not sure if this is meaningful but is a more plausible psychometric function
+
+```{r}
+
+dat$vis12 <- ifelse(dat$pas <= 2, 0, 1)
+
+fit_pas12_34 <- glm(vis12 ~ contrast,
+           data = dat %>% filter(trial_type == "valid"),
+           family = binomial(link = "logit"))
+
+newdata <- data.frame(contrast = seq(0,1,0.001))
+
+newdata$p <- predict(fit_pas12_34, newdata = newdata, type = "response")
+
+ggplot(newdata) +
+  geom_line(aes(x = contrast, y = p)) +
+  ylim(c(0,1)) +
+  qtheme()
+```
+ 
