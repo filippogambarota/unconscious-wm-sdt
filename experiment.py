@@ -220,7 +220,7 @@ if not gui.DlgFromDict(V, order=['subject', 'age', 'gender']).OK:
 
 V['simulate'] = utils.str2bool(V['simulate']) # force to boolean from the gui
 
-dirs = utils.make_dirs()
+dirs = utils.get_dirs(simulate=V['simulate']) # get dirs according to simulation or real
 
 """
 Create Condition Dictionary
