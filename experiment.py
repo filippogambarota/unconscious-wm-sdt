@@ -105,7 +105,7 @@ FRAMES_FIX = 43  # in frames. ~ 500 ms on 85 Hz
 FRAMES_STIM = 3  # in frames. ~ 33 ms on 85 Hz
 FRAMES_MASK = 30  # in frames. ~ 350 ms on 85 Hz
 FRAMES_TARGET_RESP = 85 # in frames ~1 s on 120 hz
-ITI = 1 # in seconds, use core.wait
+ITI = 1.5 # in seconds, use core.wait
 
 # Condition parameterss
 REPETITIONS = 5  # number of trials per condition
@@ -161,14 +161,14 @@ INSTR_MEMORY_PROBE = """
 """
 
 INSTR_PAS = """
-    Infine ti sarà chiesto di riportare la tua ESPERIENZA VISIVA della prima Gabor (quella presentata velocemente). Ricorda che in questa domanda non ci sono risposte giuste o sbagliate. Siamo solo interessati a comprendere la tua esperienza il più accuratamente possibile.
+    Infine ti sarà chiesto di riportare la tua ESPERIENZA VISIVA rispetto l'ORIENTAMENTO della prima Gabor (quella presentata velocemente). Ricorda che in questa domanda non ci sono risposte giuste o sbagliate. Siamo solo interessati a comprendere la tua esperienza il più accuratamente possibile.
     
     Puoi usare queste opzioni di risposta:
     
-    1 = Non ho visto nessuno stimolo
-    2 = Ho la sensazione di aver visto lo stimolo
-    3 = Ho visto abbastanza chiaramente lo stimolo
-    4 = Ho visto chiaramente lo stimolo
+    1 = Non ho visto l'orientamento
+    2 = Ho la sensazione di aver visto l'orientamento
+    3 = Ho visto abbastanza chiaramente l'orientamento
+    4 = Ho visto chiaramente l'orientamento
 """
     
 INSTR_START_EXPERIMENT = """
@@ -187,10 +187,10 @@ PRAC_INSTRUCTIONS = """
 """
     
 PAS_RESPONSE = """
-    1 = Non ho visto nessuno stimolo
-    2 = Ho la sensazione di aver visto lo stimolo
-    3 = Ho visto abbastanza chiaramente lo stimolo
-    4 = Ho visto chiaramente lo stimolo
+    1 = Ho visto lo stimolo ma non ho visto l'orientamento
+    2 = Ho la sensazione di aver visto l'orientamento
+    3 = Ho visto abbastanza chiaramente l'orientamento
+    4 = Ho visto chiaramente l'orientamento
 """
 
 END_EXPERIMENT = """
