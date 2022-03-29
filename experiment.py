@@ -306,17 +306,17 @@ lapse_rate = 0.01
 
 # TODO set better values for other parameters
 
-quest0 = data.QuestHandler(0.5, 0.2, beta = 3.5,
+quest0 = data.QuestHandler(0.2, 0.2, beta = 3.5,
     pThreshold = 0.50, gamma = fa_rate, delta = lapse_rate,
     minVal=0, maxVal=1,
     ntrials = round(nvalid/3))
 
-quest1 = data.QuestHandler(0.5, 0.2, beta = 3.5,
+quest1 = data.QuestHandler(0.2, 0.2, beta = 3.5,
     pThreshold = 0.65, gamma = fa_rate, delta = lapse_rate,
     minVal=0, maxVal=1,
     ntrials = round(nvalid/3))
 
-quest2 = data.QuestHandler(0.5, 0.2, beta = 3.5,
+quest2 = data.QuestHandler(0.2, 0.2, beta = 3.5,
     pThreshold = 0.80, gamma = fa_rate, delta = lapse_rate,
     minVal = 0, maxVal = 1,
     ntrials = round(nvalid/3))
