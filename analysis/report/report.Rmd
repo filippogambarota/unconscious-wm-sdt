@@ -50,8 +50,7 @@ get_slope <- function(fit){
 ```
 
 ```{r data}
-file <- "local-files/1_(2022-03-18_09-31-23).csv"
-dat <- read_csv(here(file))
+dat <- read_csv(here("data", "csv", "4_(2022-03-25_13-27-05).csv"))
 ```
 
 ```{r pre-processing}
