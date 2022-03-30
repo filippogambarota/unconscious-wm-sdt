@@ -187,7 +187,7 @@ PRAC_INSTRUCTIONS = """
 """
     
 PAS_RESPONSE = """
-    1 = Ho visto lo stimolo ma non ho visto l'orientamento
+    1 = Non ho visto l'orientamento
     2 = Ho la sensazione di aver visto l'orientamento
     3 = Ho visto abbastanza chiaramente l'orientamento
     4 = Ho visto chiaramente l'orientamento
