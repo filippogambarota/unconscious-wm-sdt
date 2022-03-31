@@ -8,8 +8,8 @@ import random
 import pickle
 from scipy import stats
 
-def get_dirs(simulate = False):
-    if simulate:
+def get_dirs(simulate = False, maindir = True):
+    if simulate or not maindir:
         data_folder = "data_sim"
     else:
         data_folder = "data"
