@@ -1,9 +1,5 @@
-old/*
-data_sim/*
-!*/.gitkeep
-*.code-workspace
-__pycache__/
-todo.txt
+#---- R
+
 .Rproj.user
 # History files
 .Rhistory
@@ -55,10 +51,23 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-README.html
+# ---- Python and VScode
 
+*.code-workspace
+__pycache__/
+
+# ---- Project specific
+
+old/*
+data_sim/*
+analysis/*
+todo.txt
+README.html
 local-files/*
+
+# windows links
 
 *.Ink
 *.lnk
 *.bat
+
