@@ -244,14 +244,15 @@ print('the physical size of the fixation cross should be', utils.deg2cm(FIX_HEIG
  This is computationally heavy stuff. Thus we do it in the beginning of our experiment
 """
 
-V = {'subject':'', 'age':'', 'gender':['male', 'female'], 'simulate':[False, True]}
+V = {'subject':'', 'age':'', 'gender':['male', 'female'], 'simulate':[False, True], 'maindir': [True, False]}
 #V = {'subject':'', 'age':'', 'gender':['male', 'female']}
 if not gui.DlgFromDict(V, order=['subject', 'age', 'gender']).OK:
     core.quit()
 
 V['simulate'] = utils.str2bool(V['simulate']) # force to boolean from the gui
+V['maindir'] = utils.str2bool(V['maindir']) # force to boolean from the gui
 
-dirs = utils.get_dirs(simulate=V['simulate']) # get dirs according to simulation or real
+dirs = utils.get_dirs(simulate=V['simulate'], maindir = V['maindir']) # get dirs according to simulation or real
 
 """
 Create Condition Dictionary
