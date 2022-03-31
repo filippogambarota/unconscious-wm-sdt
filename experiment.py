@@ -268,7 +268,7 @@ cond = {
     "type": ["change", "same"],
     "trial_type": ["valid", "catch"],
     "which_change": ["clock", "anti"],
-    "memory_pos": ['0'],
+    #"memory_pos": ['0'],
     "trial": range(1, REPETITIONS + 1),
     "quest": range(3),
     "pas": [''],
@@ -396,10 +396,10 @@ def experiment(trials, ntrials = None, isPrac = False):
         gabor_memory.contrast = contrast_trial # assign contrast to memory
         gabor_memory.ori = trial['memory_ori'] # assign ori to memory
         gabor_pos_trial = random.choice(list(GABOR_MEMORY_POS.keys())) # get random position
-        gabor_memory.pos = GABOR_MEMORY_POS[gabor_pos_trial] # set the random position
+        #gabor_memory.pos = GABOR_MEMORY_POS[gabor_pos_trial] # set the random position
         gabor_test.ori = trial['test_ori'] # assign ori to test
         mask.tex = np.random.rand(256, 256) * 2.0 - 1 # create numpy array for the mask 
-        mask.pos = GABOR_MEMORY_POS[gabor_pos_trial] # position of the mask
+        #mask.pos = GABOR_MEMORY_POS[gabor_pos_trial] # position of the mask
         # -- STARTING TRIAL
         clock_trial.reset()
         
@@ -468,9 +468,9 @@ def experiment(trials, ntrials = None, isPrac = False):
         trial['vis'] = vis_resp
         trial['ntrial'] = i + 1 # setting the correct trial number
         # timing
-        trial['memory_pos'] = GABOR_MEMORY_POS[gabor_pos_trial],
+        #trial['memory_pos'] = GABOR_MEMORY_POS[gabor_pos_trial],
         trial['target_dur'] = target_dur
-        #trial['mask_dur'] = mask_dur
+        trial['mask_dur'] = mask_dur
         trial['retention_dur'] = retention_dur
         trial['fix_dur'] = fix_dur
         trial['trial_dur'] = trial_dur
