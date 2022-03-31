@@ -63,6 +63,17 @@ def ask(kb, obj = None, msg = None, keyList=None, quit = 'escape', before = '', 
     
     return before + key_name + after, key_rt
 
+def feedback(pas_resp):
+    if pas_resp == "1":
+        FEEDBACK = FEEDBACK_POSITIVE.format(pas_resp)
+    else:
+        FEEDBACK = FEEDBACK_NEGATIVE.format(pas_resp)
+    
+    text.text = FEEDBACK
+    text.draw()
+    win.flip()
+    core.wait(FEEDBACK_DUR)
+
 # Kill switch for Psychopy3 
 esc_key = 'escape'
 
@@ -111,6 +122,7 @@ FRAMES_STIM = 3  # in frames. ~ 33 ms on 85 Hz
 FRAMES_MASK = 30  # in frames. ~ 350 ms on 85 Hz
 FRAMES_TARGET_RESP = 85 # in frames ~1 s on 120 hz
 ITI = 1.5 # in seconds, use core.wait
+FEEDBACK_DUR = 1.5
 
 # Condition parameterss
 REPETITIONS = 5  # number of trials per condition
@@ -180,6 +192,14 @@ INSTR_PAS = """
 
 INSTR_FEEDBACK = """
     Alcune volte ci saranno alcuni trial senza nessuno stimolo. Dopo che avrai dato la risposta di visibilità a questi trial ti sarà dato un feedback in funzione che tu dica di aver visto qualcosa oppure no. Questo serve soltanto affinchè tu possa adattare al meglio le tue risposte. 
+"""
+
+FEEDBACK_POSITIVE = """
+    Ottimo! non c'era la Gabor e hai risposto {}
+"""
+
+FEEDBACK_NEGATIVE = """
+    Attenzione! non c'era la Gabor e hai risposto {}
 """
     
 INSTR_START_EXPERIMENT = """
@@ -300,6 +320,8 @@ mask_prac = visual.GratingStim(win, size=GABOR_SIZE, interpolate=False, autoLog=
 
 text = visual.TextStim(win, pos=MESSAGE_POS, height=MESSAGE_HEIGHT, wrapWidth=30)  # Message / question stimulus. Will be used to display instructions and questions.
 
+black_screen = visual.Rect(win, size = (MON_SIZE), units = "pix", fillColor = "black")
+
 kb = keyboard.Keyboard() # init the keyboard
 
 # Timing
@@ -361,11 +383,12 @@ def experiment(trials, ntrials = None, isPrac = False):
         quest_trial = trial['quest'] # get index quest
         
         # Check if catch and set contrast to 0, else take the QUEST
-        if isPrac:
-            contrast_trial = random.uniform(0, 1)
+        
+        if trial["trial_type"] == "catch":
+            contrast_trial = 0
         else:
-            if trial["trial_type"] == "catch":
-                contrast_trial = 0
+            if isPrac:
+                contrast_trial = random.uniform(0, 1)
             else:
                 contrast_trial = quest_list[quest_trial]._nextIntensity # suggest contrast
         
@@ -393,13 +416,13 @@ def experiment(trials, ntrials = None, isPrac = False):
             gabor_memory.draw()
             win.flip()
         target_dur = clock_stim.getTime()    
-    
+
         # Mask
         clock_stim.reset()
         for frame in range(FRAMES_MASK):
             mask.draw()
             win.flip()
-        mask_dur = clock_stim.getTime()     
+        mask_dur = clock_stim.getTime()
         
         # Retention
         clock_stim.reset()
@@ -415,7 +438,12 @@ def experiment(trials, ntrials = None, isPrac = False):
         # PAS
         pas_resp, pas_rt = ask(kb, text, PAS_RESPONSE, list(PAS_RESP.keys()), simulate=V['simulate'], obs=obs) # pas
         
+        if trial["trial_type"] == "catch" or contrast_trial == 0:
+            win.flip()
+            feedback(pas_resp)
+        
         # ITI
+        black_screen.draw() # avoid after-effects
         win.flip() # blank screen
         core.wait(ITI)
         
@@ -442,7 +470,7 @@ def experiment(trials, ntrials = None, isPrac = False):
         # timing
         trial['memory_pos'] = GABOR_MEMORY_POS[gabor_pos_trial],
         trial['target_dur'] = target_dur
-        trial['mask_dur'] = mask_dur
+        #trial['mask_dur'] = mask_dur
         trial['retention_dur'] = retention_dur
         trial['fix_dur'] = fix_dur
         trial['trial_dur'] = trial_dur
