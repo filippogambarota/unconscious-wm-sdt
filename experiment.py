@@ -189,7 +189,7 @@ INSTR_PAS = """
 """
 
 INSTR_FEEDBACK = """
-    Alcune volte ci saranno alcuni trial senza nessuno stimolo. Dopo che avrai dato la risposta di visibilità a questi trial ti sarà dato un feedback in funzione che tu dica di aver visto qualcosa oppure no. Questo serve soltanto affinchè tu possa adattare al meglio le tue risposte. 
+    Alcune volte ci saranno dei trial senza nessuno stimolo. Dopo che avrai dato la risposta di visibilità a questi trial ti sarà dato un feedback in funzione che tu dica di aver visto qualcosa oppure no. Questo serve soltanto affinchè tu possa adattare al meglio le tue risposte. 
 """
 
 FEEDBACK_POSITIVE = """
