@@ -140,7 +140,7 @@ INSTR_WELCOME = """
 """
 
 INSTR_GENERAL = """
-    In questo esperimento vedrai una croce di fissazione, seguita da uno stimolo visivo presentato molto velocemente sempre al centro che dovrai cercare di memorizzare. Dopo un breve intervallo (circa 1 secondo) comparirà un altro stimolo visivo. Il tuo compito è confrontare il primo stimolo con il secondo e poi riportare la tua esperienza visiva del primo stimolo.
+    In questo esperimento vedrai una croce di fissazione, seguita da uno stimolo visivo in una posizione casuale sullo schermo, presentato molto velocemente che dovrai cercare di memorizzare. Dopo un breve intervallo (circa 1 secondo) comparirà al centro un altro stimolo visivo. Il tuo compito è confrontare il primo stimolo con il secondo e poi riportare la tua esperienza visiva del primo stimolo.
     
     Premi la barra spaziatrice per continuare le istruzioni
 """
@@ -150,7 +150,9 @@ INSTR_GABOR = """
 """
 
 INSTR_MASKING = """
-    La prima Gabor sarà presentata molto velocemente e seguita da un'altro stimolo formato da rumore visivo bianco e nero. Dovrai focalizzarti solo sulla Gabor e sul suo orientamento, il secondo stimolo non è rilevante.
+    La prima Gabor sarà presentata molto velocemente e seguita da un'altro stimolo formato da rumore visivo bianco e nero. Sia la gabor che lo stimolo irrilevante saranno presentati casualmente una di 4 posizioni possibili sullo schermo. 
+    
+    Dovrai focalizzarti solo sulla Gabor e sul suo orientamento, il secondo stimolo non è rilevante. Anche la posizione dello stimolo è totalmente irrilevante.
     
     Essendo presentata velocemente, alcune volte sarà più difficile vederla e altre volte non vedrai proprio niente. Non ti preoccupare è totalmente normale.
 """
@@ -174,6 +176,10 @@ INSTR_PAS = """
     2 = Ho la sensazione di aver visto l'orientamento
     3 = Ho visto abbastanza chiaramente l'orientamento
     4 = Ho visto chiaramente l'orientamento
+"""
+
+INSTR_FEEDBACK = """
+    Alcune volte ci saranno alcuni trial senza nessuno stimolo. Dopo che avrai dato la risposta di visibilità a questi trial ti sarà dato un feedback in funzione che tu dica di aver visto qualcosa oppure no. Questo serve soltanto affinchè tu possa adattare al meglio le tue risposte. 
 """
     
 INSTR_START_EXPERIMENT = """
